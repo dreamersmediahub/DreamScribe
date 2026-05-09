@@ -21,7 +21,7 @@ struct AudioTranscribeView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(NSColor.controlBackgroundColor))
+        .background(DreamersAtmosphere().ignoresSafeArea())
         .onDrop(of: [.fileURL, .data, .audio, .movie], isTargeted: $isDropTargeted) { providers in
             handleDroppedFiles(providers)
             return true
@@ -51,41 +51,39 @@ struct AudioTranscribeView: View {
         VStack(spacing: 0) {
             Spacer()
 
-            ZStack {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(.windowBackgroundColor).opacity(0.4))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .strokeBorder(
-                                style: StrokeStyle(lineWidth: 2, dash: [8])
-                            )
-                            .foregroundColor(isDropTargeted ? .accentColor : .gray.opacity(0.5))
-                    )
-                    .animation(.easeInOut(duration: 0.15), value: isDropTargeted)
-
+            ChromePanel(isSelected: isDropTargeted) {
                 VStack(spacing: 14) {
                     Image(systemName: "arrow.down.doc")
                         .font(.system(size: 32))
-                        .foregroundColor(isDropTargeted ? .accentColor : .gray)
+                        .foregroundStyle(isDropTargeted ? DreamersTheme.ColorToken.auroraCyan : DreamersTheme.ColorToken.starWhite.opacity(0.72))
 
                     Text("Drop audio or video files here")
                         .font(.headline)
+                        .foregroundStyle(DreamersTheme.ColorToken.starWhite)
 
                     Text("or")
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(DreamersTheme.ColorToken.starWhite.opacity(0.68))
 
                     Button("Choose Files") {
                         selectFiles()
                     }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(PrismButtonStyle())
                 }
                 .padding(32)
             }
+            .overlay(
+                RoundedRectangle(cornerRadius: DreamersTheme.Radius.panel, style: .continuous)
+                    .strokeBorder(
+                        isDropTargeted ? DreamersTheme.ColorToken.auroraCyan.opacity(0.85) : DreamersTheme.ColorToken.starWhite.opacity(0.34),
+                        style: StrokeStyle(lineWidth: 1.4, dash: [8])
+                    )
+            )
+            .animation(.easeInOut(duration: 0.15), value: isDropTargeted)
             .frame(maxWidth: 480, maxHeight: 200)
 
             Text("Supports WAV, MP3, M4A, AIFF, MP4, MOV, AAC, FLAC, CAF, AMR, OGG, OPUS, 3GP")
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundStyle(DreamersTheme.ColorToken.starWhite.opacity(0.68))
                 .padding(.top, 12)
 
             Spacer()
@@ -99,6 +97,7 @@ struct AudioTranscribeView: View {
         VStack(spacing: 0) {
             topBar
             Divider()
+                .overlay(DreamersTheme.ColorToken.starWhite.opacity(0.18))
 
             Form {
                 ForEach(transcriptionManager.queue) { item in
@@ -145,7 +144,7 @@ struct AudioTranscribeView: View {
         HStack(spacing: 10) {
             Text("\(transcriptionManager.queue.count) file\(transcriptionManager.queue.count == 1 ? "" : "s")")
                 .font(.subheadline)
-                .foregroundColor(.secondary)
+                .foregroundStyle(DreamersTheme.ColorToken.starWhite.opacity(0.74))
 
             Button {
                 selectFiles()
@@ -156,15 +155,8 @@ struct AudioTranscribeView: View {
                     Text("Add")
                         .font(.system(size: 12, weight: .medium))
                 }
-                .foregroundColor(.secondary)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 5)
-                .background(
-                    Capsule()
-                        .fill(Color.secondary.opacity(0.12))
-                )
             }
-            .buttonStyle(.plain)
+            .buttonStyle(ChromeIconButtonStyle())
             .help("Add files")
 
             Spacer()
@@ -181,11 +173,11 @@ struct AudioTranscribeView: View {
                         Text("Cancel")
                             .font(.system(size: 12, weight: .medium))
                     }
-                    .foregroundColor(.red)
+                    .foregroundColor(.red.opacity(0.9))
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
                     .background(
-                        Capsule()
+                        RoundedRectangle(cornerRadius: DreamersTheme.Radius.control, style: .continuous)
                             .fill(Color.red.opacity(0.12))
                     )
                 }
@@ -201,16 +193,8 @@ struct AudioTranscribeView: View {
                         Text("Start")
                             .font(.system(size: 12, weight: .semibold))
                     }
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(
-                        Capsule()
-                            .fill(Color(.controlAccentColor))
-                            .shadow(color: Color(.controlAccentColor).opacity(0.2), radius: 2, x: 0, y: 1)
-                    )
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(PrismButtonStyle())
             }
 
             Button {
@@ -225,19 +209,13 @@ struct AudioTranscribeView: View {
                     Text("Clear")
                         .font(.system(size: 12, weight: .medium))
                 }
-                .foregroundColor(.secondary)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 5)
-                .background(
-                    Capsule()
-                        .fill(Color.secondary.opacity(0.12))
-                )
             }
-            .buttonStyle(.plain)
+            .buttonStyle(ChromeIconButtonStyle())
             .help("Clear all items")
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 10)
+        .background(DreamersTheme.ColorToken.softInk.opacity(0.10))
     }
 
     private var enhancementControls: some View {
@@ -245,6 +223,7 @@ struct AudioTranscribeView: View {
             Toggle("AI Enhancement", isOn: $isEnhancementEnabled)
                 .toggleStyle(.switch)
                 .controlSize(.small)
+                .foregroundStyle(DreamersTheme.ColorToken.starWhite.opacity(0.84))
                 .onChange(of: isEnhancementEnabled) { _, newValue in
                     enhancementService.isEnhancementEnabled = newValue
                 }
@@ -281,15 +260,15 @@ struct AudioTranscribeView: View {
 
     private var dropOverlay: some View {
         RoundedRectangle(cornerRadius: 12)
-            .strokeBorder(Color.accentColor, style: StrokeStyle(lineWidth: 2, dash: [8]))
+            .strokeBorder(DreamersTheme.ColorToken.auroraCyan, style: StrokeStyle(lineWidth: 2, dash: [8]))
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.accentColor.opacity(0.06))
+                    .fill(DreamersTheme.ColorToken.auroraCyan.opacity(0.08))
             )
             .overlay {
                 Text("Drop to add files")
                     .font(.subheadline.weight(.medium))
-                    .foregroundColor(.accentColor)
+                    .foregroundStyle(DreamersTheme.ColorToken.auroraCyan)
             }
             .padding(16)
             .transition(.opacity)

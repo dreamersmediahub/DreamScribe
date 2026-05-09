@@ -5,6 +5,7 @@ struct NotchRecorderView<S: RecorderStateProvider & ObservableObject>: View {
     @ObservedObject var recorder: Recorder
     @EnvironmentObject var windowManager: NotchWindowManager
     @EnvironmentObject private var enhancementService: AIEnhancementService
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @AppStorage("showLiveTextPreview") private var showLiveTextPreview = false
     @ObservedObject private var powerModeManager = PowerModeManager.shared
     @State private var activePopover: ActivePopoverState = .none
@@ -86,6 +87,17 @@ struct NotchRecorderView<S: RecorderStateProvider & ObservableObject>: View {
         displayState == .collapsed ? collapseAnimation : expandAnimation
     }
 
+    private var isActiveSurface: Bool {
+        displayState != .collapsed
+    }
+
+    private var pillShape: NotchShape {
+        NotchShape(
+            topCornerRadius: displayState == .liveText ? 12 : 8,
+            bottomCornerRadius: displayState == .liveText ? 22 : 16
+        )
+    }
+
     // MARK: - Body
 
     var body: some View {
@@ -105,13 +117,13 @@ struct NotchRecorderView<S: RecorderStateProvider & ObservableObject>: View {
             liveTextPanel
         }
         .frame(width: pillWidth, height: pillHeight)
-        .background(Color.black)
-        .clipShape(
-            NotchShape(
-                topCornerRadius: displayState == .liveText ? 12 : 8,
-                bottomCornerRadius: displayState == .liveText ? 22 : 16
-            )
-        )
+        .overlay(alignment: .top) {
+            RecorderPulseHalo(isActive: isActiveSurface)
+                .padding(.top, max(4, notchHeight * 0.18))
+                .allowsHitTesting(false)
+        }
+        .recorderChromeSurface(shape: pillShape, isActive: isActiveSurface, reduceMotion: reduceMotion)
+        .clipShape(pillShape)
     }
 
     // MARK: - Main Row
@@ -159,7 +171,7 @@ struct NotchRecorderView<S: RecorderStateProvider & ObservableObject>: View {
     private var liveTextPanel: some View {
         VStack(spacing: 0) {
             if displayState == .liveText {
-                Divider().background(Color.white.opacity(0.15))
+                Divider().background(DreamersTheme.ColorToken.starWhite.opacity(0.14))
                 LiveTranscriptView(text: stateProvider.partialTranscript)
                     .padding(.horizontal, 8)
             }

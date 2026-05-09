@@ -406,6 +406,8 @@ struct VoiceInkApp: App {
                     .zIndex(100)
             }
             }
+            .preferredColorScheme(.dark)
+            .tint(DreamersTheme.ColorToken.auroraCyan)
         }
         .windowStyle(.hiddenTitleBar)
         .defaultSize(width: 950, height: 730)

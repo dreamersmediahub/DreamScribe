@@ -65,9 +65,10 @@ enum DreamersTheme {
 
     static let panelFill = LinearGradient(
         colors: [
-            ColorToken.starWhite.opacity(0.16),
-            ColorToken.skyVeil.opacity(0.08),
-            ColorToken.deepDreamBlue.opacity(0.20)
+            ColorToken.starWhite.opacity(0.23),
+            ColorToken.skyVeil.opacity(0.18),
+            ColorToken.auroraCyan.opacity(0.10),
+            ColorToken.deepDreamBlue.opacity(0.10)
         ],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
@@ -75,9 +76,10 @@ enum DreamersTheme {
 
     static let selectedPanelFill = LinearGradient(
         colors: [
-            ColorToken.auroraCyan.opacity(0.28),
-            ColorToken.violetEdge.opacity(0.18),
-            ColorToken.deepDreamBlue.opacity(0.22)
+            ColorToken.starWhite.opacity(0.22),
+            ColorToken.auroraCyan.opacity(0.30),
+            ColorToken.blushPink.opacity(0.18),
+            ColorToken.violetEdge.opacity(0.20)
         ],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
@@ -85,9 +87,9 @@ enum DreamersTheme {
 
     static let panelStroke = LinearGradient(
         colors: [
-            ColorToken.starWhite.opacity(0.42),
-            ColorToken.auroraCyan.opacity(0.20),
-            ColorToken.violetEdge.opacity(0.18)
+            ColorToken.starWhite.opacity(0.56),
+            ColorToken.auroraCyan.opacity(0.34),
+            ColorToken.violetEdge.opacity(0.24)
         ],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
@@ -95,9 +97,9 @@ enum DreamersTheme {
 
     static let selectedPanelStroke = LinearGradient(
         colors: [
-            ColorToken.starWhite.opacity(0.70),
-            ColorToken.auroraCyan.opacity(0.58),
-            ColorToken.blushPink.opacity(0.32)
+            ColorToken.starWhite.opacity(0.82),
+            ColorToken.auroraCyan.opacity(0.72),
+            ColorToken.blushPink.opacity(0.46)
         ],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
@@ -107,34 +109,34 @@ enum DreamersTheme {
         ZStack {
             LinearGradient(
                 colors: [
-                    ColorToken.midnightNavy,
                     ColorToken.deepDreamBlue,
                     ColorToken.dreamBlue,
-                    ColorToken.hazeBlue
+                    ColorToken.hazeBlue,
+                    ColorToken.skyVeil
                 ],
                 startPoint: .top,
                 endPoint: .bottom
             )
 
-            RadialGradient(
-                colors: [ColorToken.skyVeil.opacity(0.44), .clear],
-                center: .topLeading,
-                startRadius: 0,
-                endRadius: 420
+            LinearGradient(
+                colors: [
+                    ColorToken.starWhite.opacity(0.30),
+                    .clear,
+                    ColorToken.violetEdge.opacity(0.18)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
             )
 
-            RadialGradient(
-                colors: [ColorToken.violetEdge.opacity(0.20), .clear],
-                center: .topTrailing,
-                startRadius: 0,
-                endRadius: 360
-            )
-
-            RadialGradient(
-                colors: [ColorToken.blushPink.opacity(0.13), .clear],
-                center: .bottom,
-                startRadius: 0,
-                endRadius: 520
+            LinearGradient(
+                colors: [
+                    .clear,
+                    ColorToken.auroraCyan.opacity(0.16),
+                    ColorToken.blushPink.opacity(0.12),
+                    .clear
+                ],
+                startPoint: .leading,
+                endPoint: .trailing
             )
         }
     }

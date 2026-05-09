@@ -113,6 +113,7 @@ struct PermissionCard: View {
                     HStack {
                         Text(title)
                             .font(.headline)
+                            .foregroundStyle(DreamersTheme.ColorToken.starWhite)
                         if let message = infoTipMessage {
                             if let link = infoTipLink, !link.isEmpty {
                                 InfoTip(message, learnMoreURL: link)
@@ -123,7 +124,7 @@ struct PermissionCard: View {
                     }
                     Text(description)
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(DreamersTheme.ColorToken.starWhite.opacity(0.70))
                 }
                 
                 Spacer()
@@ -143,10 +144,9 @@ struct PermissionCard: View {
                     }) {
                         Image(systemName: "arrow.clockwise")
                             .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(.secondary)
                             .rotationEffect(.degrees(isRefreshing ? 360 : 0))
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(ChromeIconButtonStyle())
                     .contentShape(Rectangle())
                     
                     if isGranted {
@@ -171,25 +171,17 @@ struct PermissionCard: View {
                         Image(systemName: "arrow.right")
                     }
                     .font(.headline)
-                    .foregroundColor(.white)
-                    .padding()
                     .frame(maxWidth: .infinity)
-                    .background(
-                        LinearGradient(
-                            colors: [Color.accentColor, Color.accentColor.opacity(0.8)],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                    .cornerRadius(10)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(PrismButtonStyle())
             }
         }
         .padding()
-        .background(CardBackground(isSelected: false))
-        .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.05), radius: 5, y: 2)
+        .background(
+            ChromePanel {
+                Color.clear
+            }
+        )
     }
 }
 
@@ -200,12 +192,12 @@ struct PermissionsView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 32) {
-                // Header
-                CompactHeroSection(
-                    icon: "shield.lefthalf.filled",
+                DreamersSectionHeader(
+                    label: "System Access",
                     title: "App Permissions",
-                    description: "DreamScribe requires the following permissions to function properly"
+                    subtitle: "DreamScribe requires the following permissions to function properly."
                 )
+                .frame(maxWidth: .infinity, alignment: .leading)
                 
                 // Permission Cards
                 VStack(spacing: 16) {
@@ -283,7 +275,7 @@ struct PermissionsView: View {
             }
             .padding(24)
         }
-        .background(Color(NSColor.controlBackgroundColor))
+        .background(DreamersAtmosphere().ignoresSafeArea())
         .onAppear {
             permissionManager.checkAllPermissions()
         }

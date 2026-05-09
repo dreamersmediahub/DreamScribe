@@ -64,9 +64,8 @@ struct EnhancementSettingsView: View {
                     } label: {
                         Image(systemName: "gear")
                             .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(isShowingSettings ? .accentColor : .secondary)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(ChromeIconButtonStyle(isSelected: isShowingSettings))
                     .help("Enhancement settings")
                 }
             }
@@ -104,9 +103,8 @@ struct EnhancementSettingsView: View {
                         Image(systemName: "plus.circle.fill")
                             .font(.system(size: 18))
                             .symbolRenderingMode(.hierarchical)
-                            .foregroundStyle(.secondary)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(ChromeIconButtonStyle())
                     .help("Add new prompt")
                 }
             }
@@ -114,7 +112,7 @@ struct EnhancementSettingsView: View {
         }
         .formStyle(.grouped)
         .scrollContentBackground(.hidden)
-        .background(Color(NSColor.controlBackgroundColor))
+        .background(DreamersAtmosphere().ignoresSafeArea())
         .slidingPanel(isPresented: .init(
             get: { isPanelOpen },
             set: { newValue in
@@ -161,9 +159,13 @@ private struct ReorderablePromptGrid: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             if enhancementService.customPrompts.isEmpty {
-                Text("No prompts available")
-                    .foregroundColor(.secondary)
-                    .font(.caption)
+                ChromePanel {
+                    Text("No prompts available")
+                        .foregroundStyle(DreamersTheme.ColorToken.starWhite.opacity(0.70))
+                        .font(.caption)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(16)
+                }
             } else {
                 let columns = [
                     GridItem(.adaptive(minimum: 80, maximum: 100), spacing: 36)

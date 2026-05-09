@@ -7,13 +7,15 @@ launch-splash animation. Outputs an asset catalog imageset.
 from __future__ import annotations
 import json
 import re
+import shutil
 import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).parent
 SRC_SVG = ROOT / "source" / "submark.svg"
 OUT_DIR = ROOT / "generated"
-ASSETS_DIR = ROOT.parent / "VoiceInk" / "Assets.xcassets" / "DreamersSubmark.imageset"
+ASSETS_ROOT = ROOT.parent / "DreamScribe" / "Assets.xcassets"
+ASSETS_DIR = ASSETS_ROOT / "DreamersSubmark.imageset"
 
 PRISM_STOPS = [
     (0,   "#5BC3DB"),
@@ -53,6 +55,11 @@ def build_recolored_svg() -> str:
 
 
 def main() -> None:
+    if shutil.which("rsvg-convert") is None:
+        raise SystemExit("Missing rsvg-convert. Install librsvg with `brew install librsvg`.")
+    if not SRC_SVG.exists():
+        raise SystemExit(f"Missing source SVG: {SRC_SVG}")
+
     OUT_DIR.mkdir(exist_ok=True)
     ASSETS_DIR.mkdir(parents=True, exist_ok=True)
 

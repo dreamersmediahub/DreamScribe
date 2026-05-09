@@ -35,6 +35,12 @@
   --prism-3:  oklch(0.74 0.22 340); /* magenta */
   --prism-4:  oklch(0.82 0.16 90);  /* lemon */
   --prism-5:  oklch(0.78 0.15 150); /* mint */
+  /* sRGB approximations used by the deterministic app asset generators. */
+  --prism-1-srgb: #5BC3DB;
+  --prism-2-srgb: #8B7DD0;
+  --prism-3-srgb: #DB6DB0;
+  --prism-4-srgb: #DBC470;
+  --prism-5-srgb: #5DC09F;
   --prism-gradient: linear-gradient(135deg,
     var(--prism-1) 0%,
     var(--prism-2) 30%,
@@ -46,6 +52,14 @@
     oklch(0.72 0.19 280 / .22) 35%,
     oklch(0.74 0.22 340 / .25) 65%,
     oklch(0.82 0.16 90 / .22) 100%);
+
+  /* ---------- DREAMSCRIBE APP SURFACES ----------
+     Native app surfaces skew cooler and brighter than the web ink system. */
+  --dreamscribe-midnight: #071526;
+  --dreamscribe-sky:      #246B9B;
+  --dreamscribe-haze:     #9EB7FF;
+  --dreamscribe-pearl:    #F8FBFF;
+  --dreamscribe-chrome-line: rgba(248, 251, 255, 0.18);
 
   /* Brighter variant for Journal + case-study (via body.bright-prism) */
   --prism-bright-1: oklch(0.86 0.20 210);

@@ -85,7 +85,7 @@ struct InlineHistoryView: View {
         }
         .animation(.easeInOut(duration: 0.2), value: selectedTranscriptions.isEmpty)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(NSColor.controlBackgroundColor))
+        .background(DreamersAtmosphere().ignoresSafeArea())
         .overlay {
             Color.black.opacity(isPanelPresented ? 0.1 : 0)
                 .ignoresSafeArea()
@@ -103,10 +103,10 @@ struct InlineHistoryView: View {
                 panelContent
                     .frame(width: 400)
                     .frame(maxHeight: .infinity)
-                    .background(Color(NSColor.windowBackgroundColor))
+                    .background(DreamersTheme.ColorToken.softInk.opacity(0.92))
                     .overlay(alignment: .leading) {
                         Rectangle()
-                            .fill(Color(NSColor.separatorColor))
+                            .fill(DreamersTheme.ColorToken.starWhite.opacity(0.18))
                             .frame(width: 1)
                     }
                     .shadow(color: .black.opacity(0.08), radius: 8, x: -2, y: 0)
@@ -158,24 +158,30 @@ struct InlineHistoryView: View {
                 TextField("Search transcriptions...", text: $searchText)
                     .textFieldStyle(.plain)
                     .font(.system(size: 13))
+                    .foregroundStyle(DreamersTheme.ColorToken.starWhite)
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
             .background(
                 Capsule()
-                    .fill(Color.secondary.opacity(0.08))
+                    .fill(DreamersTheme.ColorToken.starWhite.opacity(0.10))
+            )
+            .overlay(
+                Capsule()
+                    .stroke(DreamersTheme.ColorToken.starWhite.opacity(0.18), lineWidth: 0.8)
             )
             .frame(maxWidth: .infinity)
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 10)
+        .background(DreamersTheme.ColorToken.softInk.opacity(0.10))
     }
 
     private var selectionBar: some View {
         HStack(spacing: 16) {
             Text("\(selectedTranscriptions.count) selected")
                 .font(.system(size: 13, weight: .medium))
-                .foregroundColor(.secondary)
+                .foregroundStyle(DreamersTheme.ColorToken.starWhite.opacity(0.76))
 
             Spacer()
 
@@ -227,25 +233,34 @@ struct InlineHistoryView: View {
         .padding(.horizontal, 20)
         .padding(.vertical, 10)
         .background(
-            Color(NSColor.windowBackgroundColor)
-                .shadow(color: Color.black.opacity(0.1), radius: 3, y: -2)
+            DreamersTheme.ColorToken.softInk
+                .opacity(0.18)
+                .shadow(color: DreamersTheme.ColorToken.softInk.opacity(0.20), radius: 3, y: -2)
         )
     }
 
     // MARK: - Empty State
 
     private var emptyStateView: some View {
-        VStack(spacing: 12) {
+        VStack {
             Spacer()
-            Image(systemName: "doc.text.magnifyingglass")
-                .font(.system(size: 40))
-                .foregroundColor(.secondary)
-            Text(searchText.isEmpty ? "No transcriptions yet" : "No results found")
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(.secondary)
-            Text(searchText.isEmpty ? "Your transcription history will appear here" : "Try a different search term")
-                .font(.system(size: 13))
-                .foregroundColor(.secondary.opacity(0.8))
+            ChromePanel {
+                VStack(spacing: 12) {
+                    Image(systemName: "doc.text.magnifyingglass")
+                        .font(.system(size: 40))
+                        .foregroundStyle(DreamersTheme.ColorToken.starWhite.opacity(0.72))
+
+                    Text(searchText.isEmpty ? "No transcriptions yet" : "No results found")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundStyle(DreamersTheme.ColorToken.starWhite)
+
+                    Text(searchText.isEmpty ? "Your transcription history will appear here" : "Try a different search term")
+                        .font(.system(size: 13))
+                        .foregroundStyle(DreamersTheme.ColorToken.starWhite.opacity(0.70))
+                }
+                .padding(28)
+            }
+            .frame(maxWidth: 360)
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -339,16 +354,13 @@ struct InlineHistoryView: View {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .medium))
                         .foregroundColor(.secondary)
-                        .padding(6)
-                        .background(Color.secondary.opacity(0.1))
-                        .clipShape(Circle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(ChromeIconButtonStyle())
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 12)
-            .background(Color(NSColor.windowBackgroundColor))
-            .overlay(Divider().opacity(0.5), alignment: .bottom)
+            .background(DreamersTheme.ColorToken.softInk.opacity(0.22))
+            .overlay(Divider().overlay(DreamersTheme.ColorToken.starWhite.opacity(0.18)), alignment: .bottom)
             .zIndex(1)
 
             if let transcription = panelTranscription {
@@ -617,4 +629,3 @@ private struct HistoryCardRow: View {
     }
 
 }
-

@@ -15,7 +15,8 @@ from pathlib import Path
 ROOT = Path(__file__).parent
 SRC_SVG = ROOT / "source" / "submark.svg"
 OUT_DIR = ROOT / "generated"
-APPICON_DIR = ROOT.parent / "VoiceInk" / "Assets.xcassets" / "AppIcon.appiconset"
+ASSETS_ROOT = ROOT.parent / "DreamScribe" / "Assets.xcassets"
+APPICON_DIR = ASSETS_ROOT / "AppIcon.appiconset"
 
 # Approximate sRGB hexes for the OKLCH prism stops in colors_and_type.css.
 # Close enough for a 1024px icon; fine-tune visually if needed.
@@ -86,6 +87,8 @@ def build_master_svg(submark_path: str) -> str:
 
 
 def rasterize(master_svg_path: Path, out_path: Path, size: int) -> None:
+    if shutil.which("rsvg-convert") is None:
+        raise SystemExit("Missing rsvg-convert. Install librsvg with `brew install librsvg`.")
     subprocess.run(
         [
             "rsvg-convert",
@@ -99,6 +102,11 @@ def rasterize(master_svg_path: Path, out_path: Path, size: int) -> None:
 
 
 def main() -> None:
+    if not SRC_SVG.exists():
+        raise SystemExit(f"Missing source SVG: {SRC_SVG}")
+    if not APPICON_DIR.exists():
+        raise SystemExit(f"Missing app icon asset catalog: {APPICON_DIR}")
+
     OUT_DIR.mkdir(exist_ok=True)
     submark_path = read_submark_path()
     master = OUT_DIR / "icon-master.svg"

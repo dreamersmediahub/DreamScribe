@@ -8,11 +8,12 @@ struct DreamersAtmosphere: View {
         DreamersTheme.atmosphereGradient()
             .overlay(alignment: .topTrailing) {
                 if !reduceMotion {
-                    Circle()
-                        .fill(DreamersTheme.ColorToken.auroraCyan.opacity(0.12))
-                        .frame(width: 260, height: 260)
-                        .blur(radius: 58)
-                        .offset(x: drift ? 20 : -12, y: drift ? -20 : 8)
+                    DreamersTheme.prismGradient
+                        .frame(width: 240, height: 2)
+                        .blur(radius: 1.5)
+                        .opacity(0.38)
+                        .rotationEffect(.degrees(-12))
+                        .offset(x: drift ? 20 : -12, y: drift ? 26 : 6)
                         .animation(.easeInOut(duration: 9).repeatForever(autoreverses: true), value: drift)
                 }
             }
@@ -78,46 +79,25 @@ struct DREAMScribeLockup: View {
             case .hero: return 56
             }
         }
+
+        var wordmarkWidth: CGFloat {
+            switch self {
+            case .compact: return 150
+            case .standard: return 300
+            case .hero: return 390
+            }
+        }
     }
 
     let scale: Scale
     var includeSubline = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: scale == .compact ? 2 : 6) {
-            HStack(alignment: .firstTextBaseline, spacing: 0) {
-                Text("DREAM")
-                    .font(.system(size: scale.dreamSize, weight: .semibold, design: .serif))
-                    .tracking(scale == .compact ? 1.0 : 2.4)
-                    .foregroundStyle(DreamersTheme.chromeGradient)
-
-                Text("S")
-                    .font(.system(size: scale.scribeSize, weight: .semibold, design: .serif))
-                    .italic()
-                    .foregroundStyle(DreamersTheme.chromeGradient)
-                    .overlay(alignment: .topTrailing) {
-                        Image(systemName: "sparkle")
-                            .font(.system(size: max(7, scale.scribeSize * 0.22), weight: .semibold))
-                            .foregroundStyle(DreamersTheme.ColorToken.starWhite)
-                            .shadow(color: DreamersTheme.ColorToken.auroraCyan.opacity(0.8), radius: 8)
-                            .offset(x: scale == .compact ? 5 : 8, y: scale == .compact ? -3 : -6)
-                    }
-
-                Text("cribe")
-                    .font(.system(size: scale.scribeSize, weight: .medium, design: .serif))
-                    .italic()
-                    .foregroundStyle(DreamersTheme.ColorToken.pearlCream)
-            }
-            .lineLimit(1)
-            .minimumScaleFactor(0.72)
-
-            if includeSubline {
-                Text("BY DREAMERS MEDIA")
-                    .font(.system(size: scale == .hero ? 11 : 9, weight: .medium, design: .monospaced))
-                    .tracking(2.6)
-                    .foregroundStyle(DreamersTheme.ColorToken.starWhite.opacity(0.70))
-            }
-        }
+        Image("DreamScribeWordmark")
+            .resizable()
+            .scaledToFit()
+            .frame(width: scale.wordmarkWidth)
+            .shadow(color: DreamersTheme.ColorToken.starWhite.opacity(scale == .compact ? 0.08 : 0.14), radius: scale == .compact ? 4 : 10)
         .accessibilityLabel("DREAMScribe")
     }
 }
@@ -216,5 +196,6 @@ extension View {
             .padding(.vertical, verticalPadding)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .background(DreamersAtmosphere().ignoresSafeArea())
+            .tint(DreamersTheme.ColorToken.auroraCyan)
     }
 }
