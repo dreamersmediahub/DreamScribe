@@ -137,6 +137,18 @@ python3 build-splash-submark.py  # DreamersSubmark imageset (1x/2x/3x)
 
 Requires `librsvg` (`brew install librsvg`).
 
+## Git workflow (Claude-owned, pre-authorized)
+
+Kyle has delegated git management explicitly. Commits and pushes happen autonomously at logical milestones — don't ask permission per commit.
+
+- **Repo:** [dreamersmediahub/DreamScribe](https://github.com/dreamersmediahub/DreamScribe). Origin remote points there. No `upstream` remote — pushes can only target dreamersmediahub.
+- **Commit at milestones:** after a feature/refactor lands and builds, after agent task completes, before ending a session. Never leave a session with uncommitted work.
+- **Push immediately after commit.** Don't accumulate local commits across sessions.
+- **Repo-local email config** (`262704288+dreamersmediahub@users.noreply.github.com`) is set to dodge GitHub's email-privacy push rejection. Don't change it.
+- **Commit messages:** 1–2 sentences explaining *why*, then bullet *what* by category. Trailer: `Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>`.
+- **Never** force-push to main. **Never** rebase published history. **Never** open PRs back to Beingpax/VoiceInk upstream.
+- **Don't proactively** set up GitHub Issues / Releases / Actions / branch protection — out of scope unless asked.
+
 ## Phase 4 (the only open work)
 
 Daily-drive DreamScribe for 5 consecutive days as primary dictation. Track friction in a `DAILY-LOG.md` if anything emerges. Decide whether to retire SuperWhisper.
