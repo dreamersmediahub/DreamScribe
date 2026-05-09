@@ -33,6 +33,7 @@ playground.xcworkspace
 build/
 .local-build/
 .worktrees/
+.superpowers/
 
 # DreamScribe branding — rasterized output regenerable from SVG sources
 branding/generated/
