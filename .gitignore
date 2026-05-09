@@ -33,6 +33,9 @@ playground.xcworkspace
 build/
 .local-build/
 
+# DreamScribe branding — rasterized output regenerable from SVG sources
+branding/generated/
+
 # CocoaPods
 #
 # We recommend against adding the Pods directory to your .gitignore. However

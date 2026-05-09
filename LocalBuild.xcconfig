@@ -2,7 +2,12 @@
 // Build configuration for local/unsigned builds (no Apple Developer certificate required).
 // Used by `make local` — does NOT affect Debug or Release configurations.
 
-// Ad-hoc signing (works without a developer account)
+// Ad-hoc signing — Apple's Gatekeeper rejects self-signed certs at launch
+// (even when explicitly trusted via `add-trusted-cert -p codeSign`) unless the
+// cert is Apple-issued ($99/yr Developer Program). Ad-hoc is the only path
+// that Gatekeeper allows for non-paid builds. Trade-off: each rebuild produces
+// a different binary hash, so macOS TCC asks for Microphone/Accessibility/etc.
+// permissions again. Acceptable for personal use.
 CODE_SIGN_IDENTITY = -
 CODE_SIGN_STYLE = Manual
 DEVELOPMENT_TEAM =
@@ -13,3 +18,11 @@ PROVISIONING_PROFILE_SPECIFIER =
 
 // Add LOCAL_BUILD compilation flag so Swift code can use #if LOCAL_BUILD
 SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited) LOCAL_BUILD
+
+// ---------- DreamScribe identity (local builds) ----------
+// PRODUCT_NAME is set in the target itself (DreamScribe target → DreamScribe.app);
+// no workspace override needed any more (we used to set it in xcconfig and that
+// caused SwiftPM resource-bundle collisions, but the deep rename moved that
+// settings to the target).
+PRODUCT_BUNDLE_IDENTIFIER = co.dreamersmedia.dreamscribe
+INFOPLIST_KEY_CFBundleDisplayName = DreamScribe

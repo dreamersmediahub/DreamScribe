@@ -1,0 +1,217 @@
+/* ============================================================
+   DREAMERS MEDIA — Design tokens
+   Colors, type, motion. Copy this file into any new project
+   that needs to feel like Dreamers Media.
+============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@300;400;500&display=swap');
+
+:root {
+  /* ---------- SURFACES ---------- */
+  --ink:      #0a0908;   /* page background */
+  --ink-2:    #141210;   /* panel background */
+  --ink-3:    #1f1c19;   /* card / chip background */
+
+  /* ---------- INK ON INK ---------- */
+  --cream:    #f2ede4;   /* primary text */
+  --cream-2:  #e4ddd0;   /* muted text */
+  --dust:     #928875;   /* labels, meta */
+  --stone:    #5a544a;   /* tertiary / disabled */
+
+  /* ---------- ACCENT: EMBER (use sparingly) ---------- */
+  --ember:      oklch(0.72 0.15 45);
+  --ember-soft: oklch(0.72 0.15 45 / .18);
+  --phosphor:   oklch(0.88 0.09 140); /* alt accent — legal/archive only */
+
+  /* ---------- LINES ---------- */
+  --line:     rgba(242, 237, 228, 0.12);
+  --line-2:   rgba(242, 237, 228, 0.06);
+
+  /* ---------- PRISM GRADIENT (iridescent) ----------
+     The brand's signature. Use as text background-clip on one
+     italic fragment per page. Animates via --prism-shift. */
+  --prism-1:  oklch(0.78 0.17 210); /* cyan */
+  --prism-2:  oklch(0.72 0.19 280); /* violet */
+  --prism-3:  oklch(0.74 0.22 340); /* magenta */
+  --prism-4:  oklch(0.82 0.16 90);  /* lemon */
+  --prism-5:  oklch(0.78 0.15 150); /* mint */
+  --prism-gradient: linear-gradient(135deg,
+    var(--prism-1) 0%,
+    var(--prism-2) 30%,
+    var(--prism-3) 55%,
+    var(--prism-4) 78%,
+    var(--prism-5) 100%);
+  --prism-gradient-soft: linear-gradient(135deg,
+    oklch(0.78 0.17 210 / .25) 0%,
+    oklch(0.72 0.19 280 / .22) 35%,
+    oklch(0.74 0.22 340 / .25) 65%,
+    oklch(0.82 0.16 90 / .22) 100%);
+
+  /* Brighter variant for Journal + case-study (via body.bright-prism) */
+  --prism-bright-1: oklch(0.86 0.20 210);
+  --prism-bright-2: oklch(0.80 0.24 280);
+  --prism-bright-3: oklch(0.82 0.26 340);
+  --prism-bright-4: oklch(0.90 0.19 90);
+  --prism-bright-5: oklch(0.86 0.18 150);
+  --prism-bright: linear-gradient(135deg,
+    var(--prism-bright-1) 0%,
+    var(--prism-bright-2) 30%,
+    var(--prism-bright-3) 55%,
+    var(--prism-bright-4) 78%,
+    var(--prism-bright-5) 100%);
+
+  /* ---------- TYPE FAMILIES ---------- */
+  --serif: 'Instrument Serif', 'Times New Roman', serif;
+  --sans:  'Geist', -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  --mono:  'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* ---------- TYPE SCALE ----------
+     Clamped for fluid layouts. Display sizes are deliberately large. */
+  --type-display-xl: clamp(4.5rem, 11vw, 12rem);   /* hero "Selected work." */
+  --type-display-l:  clamp(3rem, 6.5vw, 6.5rem);   /* section openers */
+  --type-display-m:  clamp(2rem, 3.5vw, 3.6rem);   /* case-study h2 */
+  --type-lead:       clamp(1.6rem, 2.6vw, 2.6rem); /* italic pullquotes */
+  --type-body-l:     clamp(1.05rem, 1.2vw, 1.2rem);
+  --type-body:       15px;
+  --type-body-sm:    13px;
+  --type-mono:       11px;
+  --type-mono-sm:    10px;
+
+  /* ---------- LETTERSPACING ---------- */
+  --track-display:  -0.025em;
+  --track-body:     -0.005em;
+  --track-mono:      0.18em;
+  --track-mono-tight: 0.16em;
+
+  /* ---------- LINE HEIGHTS ---------- */
+  --lh-display: 0.88;
+  --lh-lead:    1.2;
+  --lh-body:    1.55;
+  --lh-body-l:  1.65;
+
+  /* ---------- SPACING SCALE ---------- */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  24px;
+  --space-6:  32px;
+  --space-7:  48px;
+  --space-8:  64px;
+  --space-9:  96px;
+  --space-10: 140px; /* act padding */
+
+  /* ---------- RADII (rarely used; brand is square) ---------- */
+  --radius-pill: 999px;
+  --radius-chip: 999px;
+
+  /* ---------- MOTION ---------- */
+  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast:   .3s;
+  --dur-med:    .6s;
+  --dur-slow:   .9s;
+  --dur-reveal: 1.1s;
+
+  /* ---------- LAYERS ---------- */
+  --z-nav:      900;
+  --z-grain:    1000;
+  --z-cursor:   2000;
+  --z-cursor-label: 2001;
+
+  /* ---------- LAYOUT ---------- */
+  --max:        1540px;
+  --gutter:     40px;
+  --gutter-sm:  24px;
+}
+
+/* ============================================================
+   SEMANTIC DEFAULTS
+============================================================ */
+body {
+  font-family: var(--sans);
+  font-weight: 400;
+  font-size: var(--type-body);
+  line-height: var(--lh-body);
+  letter-spacing: var(--track-body);
+  background: var(--ink);
+  color: var(--cream);
+}
+
+h1, .h1 {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: var(--type-display-xl);
+  line-height: var(--lh-display);
+  letter-spacing: var(--track-display);
+  color: var(--cream);
+}
+h2, .h2 {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: var(--type-display-m);
+  line-height: 1.02;
+  letter-spacing: -0.01em;
+  color: var(--cream);
+}
+h3, .h3 {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: clamp(1.4rem, 2vw, 2rem);
+  line-height: 1.1;
+  color: var(--cream);
+}
+
+/* Editorial italic fragment — the "prism" moment */
+.em-prism, h1 em, h2 em {
+  font-style: italic;
+  font-weight: 400;
+  background: var(--prism-gradient);
+  -webkit-background-clip: text;
+          background-clip: text;
+  -webkit-text-fill-color: transparent;
+          color: transparent;
+  background-size: 200% 200%;
+  animation: prismShift 12s ease-in-out infinite;
+}
+@keyframes prismShift {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+
+/* Mono label */
+.label {
+  font-family: var(--mono);
+  font-size: var(--type-mono);
+  letter-spacing: var(--track-mono);
+  text-transform: uppercase;
+  color: var(--dust);
+}
+
+/* Body variant: Journal + case-study use the brighter prism */
+body.bright-prism { --prism-gradient: var(--prism-bright); }
+
+/* Reveal primitives */
+.reveal-line { overflow: hidden; display: block; }
+.reveal-line > span {
+  display: inline-block;
+  transform: translateY(110%);
+  transition: transform var(--dur-reveal) var(--ease-out);
+}
+.reveal-line.in > span { transform: translateY(0); }
+
+.fade-up {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity var(--dur-slow) var(--ease-out),
+              transform var(--dur-slow) var(--ease-out);
+}
+.fade-up.in { opacity: 1; transform: translateY(0); }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}

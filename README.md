@@ -1,107 +1,165 @@
-<div align="center">
-  <img src="VoiceInk/Assets.xcassets/AppIcon.appiconset/256-mac.png" width="180" height="180" />
-  <h1>VoiceInk</h1>
-  <p>Voice to text app for macOS to transcribe what you say to text almost instantly</p>
+# DreamScribe
 
-  [![License](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-  ![Platform](https://img.shields.io/badge/platform-macOS%2014.0%2B-brightgreen)
-  [![GitHub release (latest by date)](https://img.shields.io/github/v/release/Beingpax/VoiceInk)](https://github.com/Beingpax/VoiceInk/releases)
-  ![GitHub all releases](https://img.shields.io/github/downloads/Beingpax/VoiceInk/total)
-  ![GitHub stars](https://img.shields.io/github/stars/Beingpax/VoiceInk?style=social)
-  <p>
-    <a href="https://tryvoiceink.com">Website</a> •
-    <a href="https://www.youtube.com/@tryvoiceink">YouTube</a>
-  </p>
+Personal-use macOS dictation app for Kyle / Dreamers Media. Forked from [Beingpax/VoiceInk](https://github.com/Beingpax/VoiceInk) (GPL v3) and rebranded + extended.
 
-  <a href="https://tryvoiceink.com">
-    <img src="https://img.shields.io/badge/Download%20Now-Latest%20Version-blue?style=for-the-badge&logo=apple" alt="Download VoiceInk" width="250"/>
-  </a>
-</div>
+The upstream `VoiceInk/` source folder name is preserved to avoid Xcode project surgery — only the user-visible identity (app name, icon, bundle ID, dashboard, splash) is rebranded. The build product is `DreamScribe.app` regardless. The original upstream README is preserved as `README-upstream.md`.
 
----
+## Identity
 
-VoiceInk is a native macOS application that transcribes what you say to text almost instantly. You can find all the information and download the app from [here](https://tryvoiceink.com). 
+- **App name:** DreamScribe
+- **Bundle ID:** `co.dreamersmedia.dreamscribe`
+- **Brand mark:** iridescent prism D on dark squircle (Dreamers submark)
+- **Wordmark:** iridescent DREAMERS letter system (shown in launch splash + dashboard hero)
+- **Accent color:** ember `#D69466`
+- **Surfaces:** ink palette (`#0a0908` / `#141210` / `#1f1c19`), cream text (`#f2ede4`)
 
-![VoiceInk Mac App](https://github.com/user-attachments/assets/12367379-83e7-48a6-b52c-4488a6a04bba)
+## Daily flow
 
-After dedicating the past 5 months to developing this app, I've decided to open source it for the greater good. 
+```bash
+cd dm-whisper/dreamscribe
 
-My goal is to make it **the most efficient and privacy-focused voice-to-text solution for macOS** that is a joy to use. While the source code is now open for experienced developers to build and contribute, purchasing a license helps support continued development and gives you access to automatic updates, priority support, and upcoming features.
-
-## Features
-
-- 🎙️ **Accurate Transcription**: Local AI models that transcribe your voice to text with 99% accuracy, almost instantly
-- 🔒 **Privacy First**: 100% offline processing ensures your data never leaves your device
-- ⚡ **Power Mode**: Intelligent app detection automatically applies your perfect pre-configured settings based on the app/ URL you're on
-- 🧠 **Context Aware**: Smart AI that understands your screen content and adapts to the context
-- 🎯 **Global Shortcuts**: Configurable keyboard shortcuts for quick recording and push-to-talk functionality
-- 📝 **Personal Dictionary**: Train the AI to understand your unique terminology with custom words, industry terms, and smart text replacements
-- 🔄 **Smart Modes**: Instantly switch between AI-powered modes optimized for different writing styles and contexts
-- 🤖 **AI Assistant**: Built-in voice assistant mode for a quick chatGPT like conversational assistant
-
-## Get Started
-
-### Download
-Get the latest version with a free trial from [tryvoiceink.com](https://tryvoiceink.com). Your purchase helps me work on VoiceInk full-time and continuously improve it with new features and updates.
-
-#### Homebrew
-Alternatively, you can install VoiceInk via `brew`:
-
-```shell
-brew install --cask voiceink
+make rebuild      # build + install to /Applications + tccutil reset + relaunch
+                  # (one-shot daily-driver flow; asks for sudo password once)
 ```
 
-### Build from Source
-As an open-source project, you can build VoiceInk yourself by following the instructions in [BUILDING.md](BUILDING.md). However, the compiled version includes additional benefits like automatic updates, priority support via Discord and email, and helps fund ongoing development.
+After running `make rebuild`, click **Allow** on each macOS permission prompt that fires (Microphone, Accessibility, Input Monitoring).
 
-## Requirements
+If your rebuild doesn't change permission-relevant code paths, you may not need a TCC reset — try `make local && make install` first; if dictation works, skip `make permissions`.
 
-- macOS 14.4 or later
+### Available targets
 
-## Documentation
+| Command | What it does |
+|---------|--------------|
+| `make local` | Build only. Output to `~/Downloads/DreamScribe.app`. Ad-hoc signed with stable designated requirement. |
+| `make install` | Quit running DreamScribe + copy `~/Downloads` build to `/Applications`. |
+| `make permissions` | Quit + `sudo tccutil reset` + relaunch. Use if dictation stops working after a rebuild. Asks for sudo password once. |
+| `make rebuild` | One-shot: `local` + `install` + `permissions`. The daily-driver flow. |
+| `make help` | List all targets. |
 
-- [Building from Source](BUILDING.md) - Detailed instructions for building the project
-- [Contributing Guidelines](CONTRIBUTING.md) - How to contribute to VoiceInk
-- [Code of Conduct](CODE_OF_CONDUCT.md) - Our community standards
+### Build internals
 
-## Contributing
+The Makefile invokes Xcode with `LocalBuild.xcconfig` overrides:
+- `CODE_SIGN_IDENTITY = -` (ad-hoc — Apple's Gatekeeper rejects all non-ad-hoc local builds without a paid Developer ID)
+- `PRODUCT_BUNDLE_IDENTIFIER = co.dreamersmedia.dreamscribe`
+- `INFOPLIST_KEY_CFBundleDisplayName = DreamScribe`
+- `SWIFT_ACTIVE_COMPILATION_CONDITIONS = ... LOCAL_BUILD`
 
-This project is **not accepting pull requests** at this time. You're welcome to fork and modify VoiceInk for your own use.
+The Xcode target itself produces `DreamScribe.app` directly (no post-build rename needed since the target was renamed during Phase 3h refactor).
 
-You can still contribute by:
-- Reporting bugs via [issues](https://github.com/Beingpax/VoiceInk/issues)
-- Suggesting features or enhancements
-- Improving documentation via issues
+After Xcode finishes, the Makefile re-codesigns ad-hoc with a stable designated requirement:
 
-For more details, see our [Contributing Guidelines](CONTRIBUTING.md). For build instructions, see our [Building Guide](BUILDING.md).
+```bash
+codesign --force --deep --sign - \
+  --identifier "co.dreamersmedia.dreamscribe" \
+  --requirements '=designated => identifier "co.dreamersmedia.dreamscribe"'
+```
+
+This bundle-ID-only DR (instead of the default cdhash-keyed DR) **may** let TCC trust the new build's identity across rebuilds even though the binary hash changes. Untested across multiple rebuilds — if it works, `make permissions` becomes optional after the first grant.
+
+The `LOCAL_BUILD` Swift compile flag (defined by `make local` only, not by `make build` or upstream Xcode opens) short-circuits the upstream Polar trial / license enforcement (`LicenseViewModel.init()` returns `.licensed` directly) and hides the sidebar Pro tab, Help & Resources, and Affiliate sections.
+
+## Customizations vs upstream
+
+See [CHANGES.md](CHANGES.md) for the full delta. Categories:
+
+1. **Brand identity** — app icon, dashboard wordmark, accent color, support email
+2. **User-visible text** — every "VoiceInk" → "DreamScribe" in surfaces Kyle uses (windows, settings, onboarding)
+3. **Trial / Pro UI hidden** under `#if !LOCAL_BUILD`
+4. **Paste behavior** — `CursorPaster` always leaves the transcript on the clipboard AND always posts ⌘V; previously the clipboard restore wiped the transcript and an Accessibility role check skipped paste in apps like VS Code
+5. **Launch splash** — new `LaunchSplashView` overlays the window for ~2.5s on every launch (submark glow → wordmark cross-fade → fade out)
+
+## Repo layout (the parts that matter)
+
+```
+dreamscribe/
+├── Makefile                    # canonical build; `make rebuild` is the daily-driver target
+├── LocalBuild.xcconfig         # ad-hoc signing + DreamScribe bundle ID + display name
+├── DreamScribe.xcodeproj/      # Xcode project
+├── DreamScribe/                # Swift source root
+│   ├── DreamScribe.swift       # @main App entry; splash overlay + identifier migrations wired here
+│   ├── CursorPaster.swift      # paste/clipboard behavior (always paste + always keep on clipboard)
+│   ├── Transcription/Engine/
+│   │   └── DreamScribeEngine.swift  # central engine class (renamed from VoiceInkEngine)
+│   ├── Views/
+│   │   ├── ContentView.swift           # sidebar (Pro tab gated under !LOCAL_BUILD)
+│   │   ├── LaunchSplashView.swift      # ★ new — splash intro animation
+│   │   └── Metrics/MetricsContent.swift # dashboard hero (DREAMERS wordmark)
+│   ├── Assets.xcassets/
+│   │   ├── AppIcon.appiconset/         # iridescent D mark, all sizes
+│   │   ├── AccentColor.colorset/       # ember (#D69466)
+│   │   ├── DreamersSubmark.imageset/   # ★ new (splash D mark with glow)
+│   │   └── DreamersWordmark.imageset/  # ★ new (dashboard wordmark)
+│   └── …
+├── DreamScribeTests/
+├── DreamScribeUITests/
+├── branding/
+│   ├── source/                  # SVG + CSS sources from Dreamers brand handoff
+│   ├── generated/               # rsvg-convert output (gitignored)
+│   ├── build-icon.py            # generates AppIcon.appiconset
+│   ├── build-wordmark.py        # generates DreamersWordmark imageset
+│   ├── build-splash-submark.py  # generates DreamersSubmark imageset
+│   ├── rebrand-strings.py       # bulk text replacement (idempotent re-run)
+│   ├── deep-rename.py           # one-shot folder + pbxproj rename (don't re-run; the rename is done)
+│   └── setup-signing-cert.sh    # creates self-signed cert (kept for future Developer ID swap)
+├── README.md                    # this file
+├── README-upstream.md           # preserved upstream VoiceInk README
+├── CHANGES.md                   # full delta vs upstream commit cf3ebd2
+└── CODE-REVIEW.md               # post-Phase-3f review (informational; mostly resolved)
+```
+
+## Brand asset regeneration
+
+If the source SVGs change, regenerate icons + image sets:
+
+```bash
+cd branding
+python3 build-icon.py            # AppIcon.appiconset (7 sizes)
+python3 build-wordmark.py        # DreamersWordmark imageset (1x/2x/3x)
+python3 build-splash-submark.py  # DreamersSubmark imageset (1x/2x/3x)
+```
+
+Requires `librsvg` (Homebrew). Source SVGs live in `branding/source/`.
+
+## One-time signing setup
+
+Before the first build, run the cert-setup script — it creates a self-signed code-signing cert in your login keychain so every `make local` signs with the same identity. macOS's TCC keys permissions on (bundle ID + designated requirement), so a stable identity means **permissions persist across rebuilds**.
+
+```bash
+bash branding/setup-signing-cert.sh
+```
+
+The script will:
+- Generate a 4096-bit RSA cert with the `codeSigning` extended key usage (10-year validity)
+- Import it into `~/Library/Keychains/login.keychain-db`
+- Trust it locally for code signing
+- Grant `codesign` non-interactive access to the private key
+
+You will be asked for your macOS user password (for the trust step) and your keychain password (typically empty / same as login). After the script succeeds, verify with:
+
+```bash
+security find-identity -v -p codesigning | grep "DreamScribe Self-Signed"
+```
+
+`make local` runs `cert-check` automatically and refuses to build if the cert is missing, with instructions to run the setup script.
+
+## Permissions reset — only when switching identities
+
+The first build that uses the new self-signed cert (instead of the prior ad-hoc) will trigger fresh TCC prompts because the designated requirement changes. Run this once after the first rebuild on the new identity:
+
+```bash
+for srv in Microphone Accessibility ListenEvent PostEvent ScreenCapture; do
+  sudo tccutil reset $srv co.dreamersmedia.dreamscribe
+done
+```
+
+Quit + relaunch DreamScribe → click Allow on each prompt. **Subsequent rebuilds keep the trust** — no more re-grant dance.
 
 ## License
 
-This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
+GPL v3 (inherited from VoiceInk upstream). Personal/private use only — no distribution.
 
-## Support
+## Origin & maintenance posture
 
-If you encounter any issues or have questions, please:
-1. Check the existing issues in the GitHub repository
-2. Create a new issue if your problem isn't already reported
-3. Provide as much detail as possible about your environment and the problem
+GitHub remote: `https://github.com/dreamersmediahub/VoiceInk.git` (the user's fork of Beingpax/VoiceInk). No `upstream` remote configured; `git push` can only target dreamersmediahub. Renaming the GitHub repo to `DreamScribe` is a one-click GitHub action — auto-redirect keeps the local origin URL working.
 
-## Acknowledgments
-
-### Core Technology
-- [whisper.cpp](https://github.com/ggerganov/whisper.cpp) - High-performance inference of OpenAI's Whisper model
-- [FluidAudio](https://github.com/FluidInference/FluidAudio) - Used for Parakeet model implementation
-
-### Essential Dependencies
-- [Sparkle](https://github.com/sparkle-project/Sparkle) - Keeping VoiceInk up to date
-- [KeyboardShortcuts](https://github.com/sindresorhus/KeyboardShortcuts) - User-customizable keyboard shortcuts
-- [LaunchAtLogin](https://github.com/sindresorhus/LaunchAtLogin) - Launch at login functionality
-- [MediaRemoteAdapter](https://github.com/ejbills/mediaremote-adapter) - Media playback control during recording
-- [Zip](https://github.com/marmelroy/Zip) - File compression and decompression utilities
-- [SelectedTextKit](https://github.com/tisfeng/SelectedTextKit) - A modern macOS library for getting selected text
-- [Swift Atomics](https://github.com/apple/swift-atomics) - Low-level atomic operations for thread-safe concurrent programming
-
-
----
-
-Made with ❤️ by Pax
+Kyle is maintaining this codebase fully; **no upstream merges**. The folder structure, target name, class names, and many UserDefaults keys have been renamed (see `CHANGES.md` Phase 3h). Re-pulling from Beingpax/VoiceInk would create thousands of conflicts. If a specific upstream commit is worth porting, cherry-pick the diff manually.

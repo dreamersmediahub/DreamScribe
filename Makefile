@@ -1,10 +1,10 @@
 # Define a directory for dependencies in the user's home folder
-DEPS_DIR := $(HOME)/VoiceInk-Dependencies
+DEPS_DIR := $(HOME)/DreamScribe-Dependencies
 WHISPER_CPP_DIR := $(DEPS_DIR)/whisper.cpp
 FRAMEWORK_PATH := $(WHISPER_CPP_DIR)/build-apple/whisper.xcframework
 LOCAL_DERIVED_DATA := $(CURDIR)/.local-build
 
-.PHONY: all clean whisper setup build local check healthcheck help dev run
+.PHONY: all clean whisper setup build local check healthcheck help dev run install permissions rebuild
 
 # Default target
 all: check build
@@ -42,53 +42,97 @@ setup: whisper
 	@echo "Please ensure your Xcode project references the framework from this new location."
 
 build: setup
-	xcodebuild -project VoiceInk.xcodeproj -scheme VoiceInk -configuration Debug CODE_SIGN_IDENTITY="" build
+	xcodebuild -project DreamScribe.xcodeproj -scheme DreamScribe -configuration Debug CODE_SIGN_IDENTITY="" build
 
-# Build for local use without Apple Developer certificate
+# Build for local use with ad-hoc signing (no Developer ID needed; Gatekeeper allows ad-hoc)
 local: check setup
-	@echo "Building VoiceInk for local use (no Apple Developer certificate required)..."
+	@echo "Building DreamScribe with ad-hoc signing..."
 	@rm -rf "$(LOCAL_DERIVED_DATA)"
-	xcodebuild -project VoiceInk.xcodeproj -scheme VoiceInk -configuration Debug \
+	xcodebuild -project DreamScribe.xcodeproj -scheme DreamScribe -configuration Debug \
 		-derivedDataPath "$(LOCAL_DERIVED_DATA)" \
 		-xcconfig LocalBuild.xcconfig \
 		CODE_SIGN_IDENTITY="-" \
 		CODE_SIGNING_REQUIRED=NO \
 		CODE_SIGNING_ALLOWED=YES \
 		DEVELOPMENT_TEAM="" \
-		CODE_SIGN_ENTITLEMENTS=$(CURDIR)/VoiceInk/VoiceInk.local.entitlements \
+		CODE_SIGN_ENTITLEMENTS=$(CURDIR)/DreamScribe/VoiceInk.local.entitlements \
 		SWIFT_ACTIVE_COMPILATION_CONDITIONS='$$(inherited) LOCAL_BUILD' \
 		build
-	@APP_PATH="$(LOCAL_DERIVED_DATA)/Build/Products/Debug/VoiceInk.app" && \
-	if [ -d "$$APP_PATH" ]; then \
-		echo "Copying VoiceInk.app to ~/Downloads..."; \
-		rm -rf "$$HOME/Downloads/VoiceInk.app"; \
-		ditto "$$APP_PATH" "$$HOME/Downloads/VoiceInk.app"; \
-		xattr -cr "$$HOME/Downloads/VoiceInk.app"; \
+	@BUILT_APP="$(LOCAL_DERIVED_DATA)/Build/Products/Debug/DreamScribe.app" && \
+	if [ -d "$$BUILT_APP" ]; then \
+		echo "Copying DreamScribe.app to ~/Downloads..."; \
+		rm -rf "$$HOME/Downloads/DreamScribe.app"; \
+		ditto "$$BUILT_APP" "$$HOME/Downloads/DreamScribe.app"; \
+		xattr -cr "$$HOME/Downloads/DreamScribe.app"; \
+		echo "Re-codesigning ad-hoc with stable designated requirement..."; \
+		codesign --force --deep --sign - \
+			--identifier "co.dreamersmedia.dreamscribe" \
+			--requirements '=designated => identifier "co.dreamersmedia.dreamscribe"' \
+			"$$HOME/Downloads/DreamScribe.app" 2>&1 || echo "(codesign DR override failed — TCC may still re-prompt across rebuilds)"; \
 		echo ""; \
-		echo "Build complete! App saved to: ~/Downloads/VoiceInk.app"; \
-		echo "Run with: open ~/Downloads/VoiceInk.app"; \
-		echo ""; \
-		echo "Limitations of local builds:"; \
-		echo "  - No iCloud dictionary sync"; \
-		echo "  - No automatic updates (pull new code and rebuild to update)"; \
+		echo "Build complete! App saved to: ~/Downloads/DreamScribe.app"; \
+		echo "Run with: open ~/Downloads/DreamScribe.app"; \
+		echo "Or 'make rebuild' to build + install + relaunch with fresh permissions."; \
 	else \
-		echo "Error: Could not find built VoiceInk.app at $$APP_PATH"; \
+		echo "Error: Could not find built DreamScribe.app at $$BUILT_APP"; \
 		exit 1; \
 	fi
 
+# Install the built app to /Applications (does not touch permissions)
+install:
+	@if [ ! -d "$$HOME/Downloads/DreamScribe.app" ]; then \
+		echo "No build to install. Run 'make local' first."; \
+		exit 1; \
+	fi
+	@echo "Quitting any running DreamScribe..."
+	@osascript -e 'tell application "DreamScribe" to quit' 2>/dev/null || true
+	@sleep 1
+	@pkill -x DreamScribe 2>/dev/null || true
+	@echo "Copying to /Applications..."
+	@rm -rf /Applications/DreamScribe.app
+	@cp -R "$$HOME/Downloads/DreamScribe.app" /Applications/DreamScribe.app
+	@echo "Installed at /Applications/DreamScribe.app"
+
+# Reset macOS TCC permissions for DreamScribe and relaunch the app.
+# Needed after a rebuild changes the binary hash — TCC keys trust on the
+# (bundleID + designated-requirement + cdhash) tuple. You'll be prompted
+# for your sudo password once, then click "Allow" on each permission dialog.
+permissions:
+	@echo "Quitting DreamScribe..."
+	@osascript -e 'tell application "DreamScribe" to quit' 2>/dev/null || true
+	@sleep 1
+	@pkill -x DreamScribe 2>/dev/null || true
+	@echo "Resetting TCC entries for co.dreamersmedia.dreamscribe (sudo password required)..."
+	@for srv in Microphone Accessibility ListenEvent PostEvent ScreenCapture; do \
+		sudo tccutil reset $$srv co.dreamersmedia.dreamscribe || true; \
+	done
+	@if [ -d /Applications/DreamScribe.app ]; then \
+		echo "Relaunching DreamScribe — click Allow on each permission prompt..."; \
+		open /Applications/DreamScribe.app; \
+	else \
+		echo "DreamScribe not in /Applications — run 'make install' first."; \
+	fi
+
+# One-shot: build, install, reset permissions, relaunch.
+# Asks for your sudo password once (for tccutil reset).
+rebuild: local install permissions
+	@echo ""
+	@echo "✓ DreamScribe rebuilt + installed + permissions reset."
+	@echo "  Click Allow on each permission prompt in the dialogs that appeared."
+
 # Run application
 run:
-	@if [ -d "$$HOME/Downloads/VoiceInk.app" ]; then \
-		echo "Opening ~/Downloads/VoiceInk.app..."; \
-		open "$$HOME/Downloads/VoiceInk.app"; \
+	@if [ -d "$$HOME/Downloads/DreamScribe.app" ]; then \
+		echo "Opening ~/Downloads/DreamScribe.app..."; \
+		open "$$HOME/Downloads/DreamScribe.app"; \
 	else \
-		echo "Looking for VoiceInk.app in DerivedData..."; \
-		APP_PATH=$$(find "$$HOME/Library/Developer/Xcode/DerivedData" -name "VoiceInk.app" -type d | head -1) && \
+		echo "Looking for built app in DerivedData..."; \
+		APP_PATH=$$(find "$$HOME/Library/Developer/Xcode/DerivedData" -name "DreamScribe.app" -type d | head -1) && \
 		if [ -n "$$APP_PATH" ]; then \
 			echo "Found app at: $$APP_PATH"; \
 			open "$$APP_PATH"; \
 		else \
-			echo "VoiceInk.app not found. Please run 'make build' or 'make local' first."; \
+			echo "App not found. Please run 'make build' or 'make local' first."; \
 			exit 1; \
 		fi; \
 	fi
@@ -97,6 +141,7 @@ run:
 clean:
 	@echo "Cleaning build artifacts..."
 	@rm -rf $(DEPS_DIR)
+	@rm -rf $(LOCAL_DERIVED_DATA)
 	@echo "Clean complete"
 
 # Help
@@ -104,11 +149,14 @@ help:
 	@echo "Available targets:"
 	@echo "  check/healthcheck  Check if required CLI tools are installed"
 	@echo "  whisper            Clone and build whisper.cpp XCFramework"
-	@echo "  setup              Copy whisper XCFramework to VoiceInk project"
-	@echo "  build              Build the VoiceInk Xcode project"
-	@echo "  local              Build for local use (no Apple Developer certificate needed)"
-	@echo "  run                Launch the built VoiceInk app"
-	@echo "  dev                Build and run the app (for development)"
+	@echo "  setup              Prepare whisper framework"
+	@echo "  build              Build the DreamScribe Xcode project"
+	@echo "  local              Build DreamScribe ad-hoc signed; output to ~/Downloads"
+	@echo "  install            Copy ~/Downloads/DreamScribe.app to /Applications"
+	@echo "  permissions        Reset TCC + relaunch (asks for sudo password once)"
+	@echo "  rebuild            local + install + permissions (one-shot daily-driver flow)"
+	@echo "  run                Launch the installed DreamScribe app"
+	@echo "  dev                Build and run (for development)"
 	@echo "  all                Run full build process (default)"
 	@echo "  clean              Remove build artifacts"
 	@echo "  help               Show this help message"
