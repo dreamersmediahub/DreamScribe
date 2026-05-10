@@ -1,65 +1,51 @@
 import SwiftUI
 
-/// Brief intro screen shown once per app launch. Iridescent D-submark glows in,
-/// dissolves, and the DREAMERS wordmark fades up underneath. ~2.6 seconds total
-/// before `onComplete` fires.
+/// Brief intro screen shown once per app launch. The Dreamers submark reveals,
+/// then settles into the DREAMScribe lockup before `onComplete` fires.
 struct LaunchSplashView: View {
     var onComplete: () -> Void
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var stage: Stage = .submark
     @State private var rootOpacity: Double = 1.0
+    @State private var markScale: CGFloat = 0.92
 
     private enum Stage {
-        case submark   // D-mark visible
-        case wordmark  // wordmark visible
+        case submark
+        case lockup
     }
-
-    private static let inkTop    = Color(red: 0x1f / 255.0, green: 0x1c / 255.0, blue: 0x19 / 255.0)
-    private static let inkMid    = Color(red: 0x14 / 255.0, green: 0x12 / 255.0, blue: 0x10 / 255.0)
-    private static let inkBottom = Color(red: 0x0a / 255.0, green: 0x09 / 255.0, blue: 0x08 / 255.0)
 
     var body: some View {
         ZStack {
-            LinearGradient(
-                colors: [Self.inkTop, Self.inkMid, Self.inkBottom],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
+            DreamersAtmosphere()
+                .ignoresSafeArea()
 
             switch stage {
             case .submark:
-                Image("DreamersSubmark")
-                    .resizable()
-                    .interpolation(.high)
-                    .scaledToFit()
-                    .frame(width: 220, height: 220)
-                    .transition(
-                        .scale(scale: 0.86)
-                        .combined(with: .opacity)
-                    )
-            case .wordmark:
-                Image("DreamersWordmark")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(maxWidth: 520)
-                    .transition(
-                        .opacity
-                        .combined(with: .move(edge: .bottom))
-                    )
+                submarkReveal
+                    .transition(.scale(scale: 0.92).combined(with: .opacity))
+            case .lockup:
+                lockupReveal
+                    .transition(.opacity.combined(with: .move(edge: .bottom)))
             }
         }
         .opacity(rootOpacity)
+        .onAppear {
+            guard !reduceMotion else { return }
+            withAnimation(.easeOut(duration: 0.9)) {
+                markScale = 1
+            }
+        }
         .task {
             // Hold the submark briefly so the eye can settle on it
             try? await Task.sleep(nanoseconds: 1_000_000_000)
 
-            // Cross-fade to wordmark
+            // Cross-fade to product identity
             withAnimation(.easeInOut(duration: 0.7)) {
-                stage = .wordmark
+                stage = .lockup
             }
 
-            // Hold the wordmark, then fade the whole splash out
+            // Hold the lockup, then fade the whole splash out
             try? await Task.sleep(nanoseconds: 1_000_000_000)
             withAnimation(.easeOut(duration: 0.5)) {
                 rootOpacity = 0
@@ -68,6 +54,43 @@ struct LaunchSplashView: View {
             try? await Task.sleep(nanoseconds: 500_000_000)
             onComplete()
         }
+    }
+
+    private var submarkReveal: some View {
+        VStack(spacing: 18) {
+            Image("DreamersSubmark")
+                .resizable()
+                .interpolation(.high)
+                .scaledToFit()
+                .frame(width: 190, height: 190)
+                .shadow(color: DreamersTheme.ColorToken.auroraCyan.opacity(0.38), radius: 34)
+                .overlay(alignment: .topTrailing) {
+                    Image(systemName: "sparkle")
+                        .font(.system(size: 22, weight: .semibold))
+                        .foregroundStyle(DreamersTheme.ColorToken.starWhite)
+                        .shadow(color: DreamersTheme.ColorToken.auroraCyan.opacity(0.8), radius: 12)
+                        .offset(x: -10, y: 16)
+                }
+
+            Text("DREAMERS MEDIA")
+                .font(.system(size: 11, weight: .medium, design: .monospaced))
+                .tracking(3)
+                .foregroundStyle(DreamersTheme.ColorToken.starWhite.opacity(0.62))
+        }
+        .scaleEffect(markScale)
+    }
+
+    private var lockupReveal: some View {
+        VStack(spacing: 18) {
+            DREAMScribeLockup(scale: .hero, includeSubline: true)
+                .frame(maxWidth: 560, alignment: .leading)
+
+            Rectangle()
+                .fill(DreamersTheme.prismGradient)
+                .frame(width: 180, height: 1)
+                .opacity(0.86)
+        }
+        .padding(.horizontal, 44)
     }
 }
 

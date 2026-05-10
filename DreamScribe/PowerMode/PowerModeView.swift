@@ -73,21 +73,19 @@ struct PowerModeView: View {
                 // Header Section
                 VStack(spacing: 12) {
                     HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            HStack(spacing: 8) {
-                                Text("Power Modes")
-                                    .font(.system(size: 28, weight: .bold, design: .default))
-                                    .foregroundColor(.primary)
-                                
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack(alignment: .top, spacing: 8) {
+                                DreamersSectionHeader(
+                                    label: "Automation",
+                                    title: "Power Modes",
+                                    subtitle: "Automate your workflows with context-aware configurations."
+                                )
+
                                 InfoTip(
                                     "Automatically apply custom configurations based on the app/website you are using.",
                                     learnMoreURL: "https://tryvoiceink.com/docs/power-mode"
                                 )
                             }
-                            
-                            Text("Automate your workflows with context-aware configurations.")
-                                .font(.system(size: 14))
-                                .foregroundColor(.secondary)
                         }
                         
                         Spacer()
@@ -102,13 +100,8 @@ struct PowerModeView: View {
                                     Text("Add Power Mode")
                                         .font(.system(size: 13, weight: .medium))
                                 }
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(Color.accentColor)
-                                .cornerRadius(6)
                             }
-                            .buttonStyle(PlainButtonStyle())
+                            .buttonStyle(PrismButtonStyle())
 
                             Button(action: { openReorderPanel() }) {
                                 HStack(spacing: 6) {
@@ -117,17 +110,8 @@ struct PowerModeView: View {
                                     Text("Reorder")
                                         .font(.system(size: 13, weight: .medium))
                                 }
-                                .foregroundColor(.primary)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(Color(NSColor.controlBackgroundColor))
-                                .cornerRadius(6)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 6)
-                                        .stroke(Color(NSColor.separatorColor), lineWidth: 1)
-                                )
                             }
-                            .buttonStyle(PlainButtonStyle())
+                            .buttonStyle(ChromeIconButtonStyle())
                         }
                     }
                 }
@@ -135,7 +119,7 @@ struct PowerModeView: View {
                 .padding(.top, 20)
                 .padding(.bottom, 16)
                 .frame(maxWidth: .infinity)
-                .background(Color(NSColor.windowBackgroundColor))
+                .background(DreamersTheme.ColorToken.softInk.opacity(0.16))
                 
                 // Content Section
                 Group {
@@ -147,23 +131,27 @@ struct PowerModeView: View {
                                             Spacer()
                                                 .frame(height: geometry.size.height * 0.2)
                                             
-                                            VStack(spacing: 16) {
-                                                Image(systemName: "square.grid.2x2.fill")
-                                                    .font(.system(size: 48, weight: .regular))
-                                                    .foregroundColor(.secondary.opacity(0.6))
-                                                
-                                                VStack(spacing: 8) {
-                                                    Text("No Power Modes Yet")
-                                                        .font(.system(size: 20, weight: .medium))
-                                                        .foregroundColor(.primary)
-                                                    
-                                                    Text("Create first power mode to automate your DreamScribe workflow based on apps/website you are using")
-                                                        .font(.system(size: 14))
-                                                        .foregroundColor(.secondary)
-                                                        .multilineTextAlignment(.center)
-                                                        .lineSpacing(2)
+                                            ChromePanel {
+                                                VStack(spacing: 16) {
+                                                    Image(systemName: "square.grid.2x2.fill")
+                                                        .font(.system(size: 48, weight: .regular))
+                                                        .foregroundStyle(DreamersTheme.ColorToken.starWhite.opacity(0.66))
+
+                                                    VStack(spacing: 8) {
+                                                        Text("No Power Modes Yet")
+                                                            .font(.system(size: 20, weight: .medium))
+                                                            .foregroundStyle(DreamersTheme.ColorToken.starWhite)
+
+                                                        Text("Create first power mode to automate your DreamScribe workflow based on apps/website you are using")
+                                                            .font(.system(size: 14))
+                                                            .foregroundStyle(DreamersTheme.ColorToken.starWhite.opacity(0.70))
+                                                            .multilineTextAlignment(.center)
+                                                            .lineSpacing(2)
+                                                    }
                                                 }
+                                                .padding(28)
                                             }
+                                            .frame(maxWidth: 440)
                                             
                                             Spacer()
                                         }
@@ -189,9 +177,9 @@ struct PowerModeView: View {
                         }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(Color(NSColor.controlBackgroundColor))
+                .background(Color.clear)
             }
-            .background(Color(NSColor.controlBackgroundColor))
+            .background(DreamersAtmosphere().ignoresSafeArea())
             .slidingPanel(isPresented: .init(
                 get: { isPanelOpen },
                 set: { if !$0 { closePanel() } }
@@ -248,23 +236,20 @@ struct ReorderPanelView: View {
                 Text("Reorder Power Modes")
                     .font(.headline)
                     .fontWeight(.semibold)
-                    .foregroundColor(.primary)
+                    .foregroundStyle(DreamersTheme.ColorToken.starWhite)
                 Spacer()
                 Button(action: onDismiss) {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .medium))
                         .foregroundColor(.secondary)
-                        .padding(6)
-                        .background(Color.secondary.opacity(0.1))
-                        .clipShape(Circle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(ChromeIconButtonStyle())
                 .help("Close")
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 16)
-            .background(Color(NSColor.windowBackgroundColor))
-            .overlay(Divider().opacity(0.5), alignment: .bottom)
+            .background(DreamersTheme.ColorToken.softInk.opacity(0.22))
+            .overlay(Divider().overlay(DreamersTheme.ColorToken.starWhite.opacity(0.18)), alignment: .bottom)
 
             // Reorder list
             List {
@@ -325,7 +310,7 @@ struct ReorderPanelView: View {
             .scrollContentBackground(.hidden)
             .padding(.top, 8)
         }
-        .background(Color(NSColor.windowBackgroundColor))
+        .background(DreamersTheme.ColorToken.softInk.opacity(0.92))
     }
 }
 

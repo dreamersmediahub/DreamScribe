@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct AudioVisualizer: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     let audioMeter: AudioMeter
     let color: Color
     let isActive: Bool
@@ -21,25 +23,51 @@ struct AudioVisualizer: View {
     }
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: 0.016)) { context in
-            HStack(spacing: barSpacing) {
-                ForEach(0..<barCount, id: \.self) { index in
-                    RoundedRectangle(cornerRadius: barWidth / 2)
-                        .fill(color.opacity(0.85))
-                        .frame(width: barWidth, height: barHeight(for: index, at: context.date))
+        Group {
+            if reduceMotion {
+                bars(at: nil)
+            } else {
+                TimelineView(.animation(minimumInterval: 0.024)) { context in
+                    bars(at: context.date)
                 }
             }
         }
     }
 
-    private func barHeight(for index: Int, at date: Date) -> CGFloat {
+    private func bars(at date: Date?) -> some View {
+        HStack(spacing: barSpacing) {
+            ForEach(0..<barCount, id: \.self) { index in
+                RoundedRectangle(cornerRadius: barWidth / 2)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                color.opacity(isActive ? 0.95 : 0.50),
+                                DreamersTheme.ColorToken.starWhite.opacity(isActive ? 0.72 : 0.34),
+                                DreamersTheme.ColorToken.violetEdge.opacity(isActive ? 0.62 : 0.24)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .frame(width: barWidth, height: barHeight(for: index, at: date))
+                    .shadow(color: color.opacity(isActive && !reduceMotion ? 0.28 : 0), radius: 4, x: 0, y: 0)
+            }
+        }
+    }
+
+    private func barHeight(for index: Int, at date: Date?) -> CGFloat {
         guard isActive else { return minHeight }
 
-        let time = date.timeIntervalSince1970
         let amplitude = max(0, min(1, pow(audioMeter.averagePower, 0.7))) // boosted for visibility
-        let wave = sin(time * 8 + phases[index]) * 0.5 + 0.5
         let centerDistance = abs(Double(index) - Double(barCount) / 2) / Double(barCount / 2)
         let centerBoost = 1.0 - (centerDistance * 0.4)
+        let wave: Double
+
+        if let date {
+            wave = sin(date.timeIntervalSince1970 * 8 + phases[index]) * 0.5 + 0.5
+        } else {
+            wave = 0.42 + centerBoost * 0.36
+        }
 
         return max(minHeight, minHeight + CGFloat(amplitude * wave * centerBoost) * (maxHeight - minHeight))
     }
@@ -57,7 +85,16 @@ struct StaticVisualizer: View {
         HStack(spacing: barSpacing) {
             ForEach(0..<barCount, id: \.self) { _ in
                 RoundedRectangle(cornerRadius: barWidth / 2)
-                    .fill(color.opacity(0.5))
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                color.opacity(0.46),
+                                DreamersTheme.ColorToken.skyVeil.opacity(0.20)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
                     .frame(width: barWidth, height: barHeight)
             }
         }
@@ -92,7 +129,7 @@ struct ProcessingStatusDisplay: View {
     var body: some View {
         VStack(spacing: 4) {
             Text(label)
-                .foregroundColor(color)
+                .foregroundStyle(color)
                 .font(.system(size: 11, weight: .medium))
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)

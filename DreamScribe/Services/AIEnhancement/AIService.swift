@@ -251,6 +251,10 @@ class AIService: ObservableObject {
         localCLIService.selectedTemplate
     }
 
+    var localCLIDisplayName: String {
+        localCLIService.selectedTemplate.displayName
+    }
+
     var localCLITimeoutSeconds: Double {
         localCLIService.timeoutSeconds
     }
@@ -451,6 +455,10 @@ class AIService: ObservableObject {
 
     func enhanceWithLocalCLI(systemPrompt: String, userPrompt: String) async throws -> String {
         try await localCLIService.enhance(systemPrompt: systemPrompt, userPrompt: userPrompt)
+    }
+
+    func testLocalCLIConfiguration() async -> LocalCLITestResult {
+        await localCLIService.testConfiguration()
     }
 
     private func refreshLocalCLIConfigurationState() {

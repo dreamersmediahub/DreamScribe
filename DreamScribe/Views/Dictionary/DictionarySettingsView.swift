@@ -38,7 +38,7 @@ struct DictionarySettingsView: View {
             }
         }
         .frame(minWidth: 600, minHeight: 500)
-        .background(Color(NSColor.controlBackgroundColor))
+        .background(DreamersAtmosphere().ignoresSafeArea())
         .slidingPanel(isPresented: $isShowingSettings, width: 400) {
             DictionarySettingsPanel {
                 withAnimation(.smooth(duration: 0.3)) {
@@ -49,12 +49,14 @@ struct DictionarySettingsView: View {
     }
     
     private var heroSection: some View {
-        CompactHeroSection(
-            icon: "brain.filled.head.profile",
+        DreamersSectionHeader(
+            label: "Dictionary",
             title: "Dictionary Settings",
-            description: "Enhance DreamScribe's transcription accuracy by teaching it your vocabulary",
-            maxDescriptionWidth: 500
+            subtitle: "Enhance DreamScribe's transcription accuracy by teaching it your vocabulary."
         )
+        .padding(.horizontal, 32)
+        .padding(.top, 28)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
     
     private var mainContent: some View {
@@ -69,9 +71,10 @@ struct DictionarySettingsView: View {
     private var sectionSelector: some View {
         VStack(alignment: .leading, spacing: 20) {
             HStack {
-                Text("Select Section")
-                    .font(.title2)
-                    .fontWeight(.semibold)
+                DreamersSectionHeader(
+                    label: "Tools",
+                    title: "Select Section"
+                )
 
                 Spacer()
 
@@ -82,9 +85,8 @@ struct DictionarySettingsView: View {
                 } label: {
                     Image(systemName: "gear")
                         .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(isShowingSettings ? .accentColor : .secondary)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(ChromeIconButtonStyle(isSelected: isShowingSettings))
                 .help("Dictionary settings")
             }
 
@@ -115,6 +117,7 @@ struct DictionarySettingsView: View {
 }
 
 struct SectionCard: View {
+    @Environment(\.colorScheme) private var colorScheme
     let section: DictionarySettingsView.DictionarySection
     let isSelected: Bool
     let action: () -> Void
@@ -125,21 +128,26 @@ struct SectionCard: View {
                 Image(systemName: section.icon)
                     .font(.system(size: 28))
                     .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(isSelected ? .blue : .secondary)
+                    .foregroundStyle(isSelected ? DreamersTheme.accentText(for: colorScheme) : DreamersTheme.secondaryText(for: colorScheme))
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(section.rawValue)
                         .font(.headline)
+                        .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
                     
                     Text(section.description)
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding()
-            .background(CardBackground(isSelected: isSelected))
+            .background(
+                ChromePanel(isSelected: isSelected) {
+                    Color.clear
+                }
+            )
         }
         .buttonStyle(.plain)
     }

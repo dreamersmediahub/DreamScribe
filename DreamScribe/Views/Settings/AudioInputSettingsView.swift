@@ -11,7 +11,9 @@ struct AudioInputSettingsView: View {
                 mainContent
             }
         }
-        .background(Color(NSColor.controlBackgroundColor))
+        .background(DreamersAtmosphere().ignoresSafeArea())
+        .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
+        .tint(DreamersTheme.accentText(for: colorScheme))
     }
     
     private var mainContent: some View {
@@ -44,6 +46,7 @@ struct AudioInputSettingsView: View {
             Text("Input Mode")
                 .font(.title2)
                 .fontWeight(.semibold)
+                .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
             
             HStack(spacing: 20) {
                 ForEach(AudioInputMode.allCases, id: \.self) { mode in
@@ -62,24 +65,25 @@ struct AudioInputSettingsView: View {
             Text("Current Device")
                 .font(.title2)
                 .fontWeight(.semibold)
+                .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
 
             HStack {
                 Image(systemName: "display")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
 
                 Text(audioDeviceManager.getSystemDefaultDeviceName() ?? "No device available")
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
 
                 Spacer()
 
                 Label("Active", systemImage: "wave.3.right")
                     .font(.caption)
-                    .foregroundStyle(.green)
+                    .foregroundStyle(DreamersTheme.success(for: colorScheme))
                     .padding(.horizontal, 10)
                     .padding(.vertical, 4)
                     .background(
                         Capsule()
-                            .fill(.green.opacity(0.1))
+                            .fill(DreamersTheme.success(for: colorScheme).opacity(0.14))
                     )
             }
             .padding()
@@ -93,13 +97,14 @@ struct AudioInputSettingsView: View {
                 Text("Available Devices")
                     .font(.title2)
                     .fontWeight(.semibold)
+                    .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
 
                 Spacer()
 
                 Button(action: { audioDeviceManager.loadAvailableDevices() }) {
                     Label("Refresh", systemImage: "arrow.clockwise")
                 }
-                .buttonStyle(.borderless)
+                .buttonStyle(ChromeIconButtonStyle())
             }
 
             VStack(spacing: 12) {
@@ -136,13 +141,13 @@ struct AudioInputSettingsView: View {
                     .fontWeight(.semibold)
                 Text("Devices will be used in order of priority. If a device is unavailable, the next one will be tried. If no prioritized device is available, the built-in microphone will be used.")
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                     .fixedSize(horizontal: false, vertical: true)
             }
             
             if audioDeviceManager.prioritizedDevices.isEmpty {
                 Text("No prioritized devices")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                     .padding(.vertical, 8)
             } else {
                 prioritizedDevicesList
@@ -155,6 +160,7 @@ struct AudioInputSettingsView: View {
             Text("Available Devices")
                 .font(.title2)
                 .fontWeight(.semibold)
+                .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
             
             availableDevicesList
         }
@@ -165,14 +171,15 @@ struct AudioInputSettingsView: View {
             Image(systemName: "mic.slash.circle.fill")
                 .font(.system(size: 48))
                 .symbolRenderingMode(.hierarchical)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
             
             VStack(spacing: 8) {
                 Text("No Audio Devices")
                     .font(.headline)
+                    .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
                 Text("Connect an audio input device to get started")
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
             }
         }
         .frame(maxWidth: .infinity)
@@ -212,7 +219,7 @@ struct AudioInputSettingsView: View {
         return Group {
             if unprioritizedDevices.isEmpty {
                 Text("No additional devices available")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                     .padding(.vertical, 8)
             } else {
                 ForEach(unprioritizedDevices, id: \.id) { device in
@@ -262,6 +269,7 @@ struct AudioInputSettingsView: View {
 }
 
 struct InputModeCard: View {
+    @Environment(\.colorScheme) private var colorScheme
     let mode: AudioInputMode
     let isSelected: Bool
     let action: () -> Void
@@ -288,15 +296,16 @@ struct InputModeCard: View {
                 Image(systemName: icon)
                     .font(.system(size: 28))
                     .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(isSelected ? .blue : .secondary)
+                    .foregroundStyle(isSelected ? DreamersTheme.accentText(for: colorScheme) : DreamersTheme.secondaryText(for: colorScheme))
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(mode.rawValue)
                         .font(.headline)
+                        .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
                     
                     Text(description)
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
@@ -309,6 +318,7 @@ struct InputModeCard: View {
 }
 
 struct DeviceSelectionCard: View {
+    @Environment(\.colorScheme) private var colorScheme
     let name: String
     let isSelected: Bool
     let isActive: Bool
@@ -319,23 +329,23 @@ struct DeviceSelectionCard: View {
             HStack {
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                     .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(isSelected ? .blue : .secondary)
+                    .foregroundStyle(isSelected ? DreamersTheme.accentText(for: colorScheme) : DreamersTheme.secondaryText(for: colorScheme))
                     .font(.system(size: 18))
                 
                 Text(name)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
                 
                 Spacer()
                 
                 if isActive {
                     Label("Active", systemImage: "wave.3.right")
                         .font(.caption)
-                        .foregroundStyle(.green)
+                        .foregroundStyle(DreamersTheme.success(for: colorScheme))
                         .padding(.horizontal, 10)
                         .padding(.vertical, 4)
                         .background(
                             Capsule()
-                                .fill(.green.opacity(0.1))
+                                .fill(DreamersTheme.success(for: colorScheme).opacity(0.14))
                         )
                 }
             }
@@ -347,6 +357,7 @@ struct DeviceSelectionCard: View {
 }
 
 struct DevicePriorityCard: View {
+    @Environment(\.colorScheme) private var colorScheme
     let name: String
     let priority: Int?
     let isActive: Bool
@@ -364,18 +375,18 @@ struct DevicePriorityCard: View {
             if let priority = priority {
                 Text("\(priority + 1)")
                     .font(.system(size: 18, weight: .medium))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                     .frame(width: 24)
             } else {
                 Text("-")
                     .font(.system(size: 18, weight: .medium))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                     .frame(width: 24)
             }
             
             // Device name
             Text(name)
-                .foregroundStyle(isAvailable ? .primary : .secondary)
+                .foregroundStyle(isAvailable ? DreamersTheme.primaryText(for: colorScheme) : DreamersTheme.secondaryText(for: colorScheme))
             
             Spacer()
             
@@ -385,22 +396,22 @@ struct DevicePriorityCard: View {
                 if isActive {
                     Label("Active", systemImage: "wave.3.right")
                         .font(.caption)
-                        .foregroundStyle(.green)
+                        .foregroundStyle(DreamersTheme.success(for: colorScheme))
                         .padding(.horizontal, 10)
                         .padding(.vertical, 4)
                         .background(
                             Capsule()
-                                .fill(.green.opacity(0.1))
+                                .fill(DreamersTheme.success(for: colorScheme).opacity(0.14))
                         )
                 } else if !isAvailable && isPrioritized {
                     Label("Unavailable", systemImage: "exclamationmark.triangle")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(DreamersTheme.warning(for: colorScheme))
                         .padding(.horizontal, 10)
                         .padding(.vertical, 4)
                         .background(
                             Capsule()
-                                .fill(Color(.windowBackgroundColor).opacity(0.4))
+                                .fill(DreamersTheme.warning(for: colorScheme).opacity(0.14))
                         )
                 }
                 
@@ -409,13 +420,13 @@ struct DevicePriorityCard: View {
                     HStack(spacing: 2) {
                         Button(action: onMoveUp) {
                             Image(systemName: "chevron.up")
-                                .foregroundStyle(canMoveUp ? .blue : .secondary.opacity(0.5))
+                        .foregroundStyle(canMoveUp ? DreamersTheme.accentText(for: colorScheme) : DreamersTheme.tertiaryText(for: colorScheme).opacity(0.5))
                         }
                         .disabled(!canMoveUp)
                         
                         Button(action: onMoveDown) {
                             Image(systemName: "chevron.down")
-                                .foregroundStyle(canMoveDown ? .blue : .secondary.opacity(0.5))
+                        .foregroundStyle(canMoveDown ? DreamersTheme.accentText(for: colorScheme) : DreamersTheme.tertiaryText(for: colorScheme).opacity(0.5))
                         }
                         .disabled(!canMoveDown)
                     }
@@ -425,7 +436,7 @@ struct DevicePriorityCard: View {
                 Button(action: onTogglePriority) {
                     Image(systemName: isPrioritized ? "minus.circle.fill" : "plus.circle.fill")
                         .symbolRenderingMode(.hierarchical)
-                        .foregroundStyle(isPrioritized ? .red : .blue)
+                        .foregroundStyle(isPrioritized ? DreamersTheme.danger(for: colorScheme) : DreamersTheme.accentText(for: colorScheme))
                 }
             }
             .buttonStyle(.plain)

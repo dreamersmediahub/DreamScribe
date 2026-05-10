@@ -3,6 +3,7 @@ import Combine
 import AppKit
 
 struct FluidAudioModelCardView: View {
+    @Environment(\.colorScheme) private var colorScheme
     let model: FluidAudioModel
     @ObservedObject var fluidAudioModelManager: FluidAudioModelManager
     @ObservedObject var transcriptionModelManager: TranscriptionModelManager
@@ -52,14 +53,14 @@ struct FluidAudioModelCardView: View {
         HStack(alignment: .firstTextBaseline) {
             Text(model.displayName)
                 .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(Color(.labelColor))
+                .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
 
             if model.supportsStreaming && isDownloaded {
                 Toggle("Real-time", isOn: $streamingEnabled)
                     .toggleStyle(.switch)
                     .controlSize(.mini)
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(Color(.secondaryLabelColor))
+                    .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                     .onChange(of: streamingEnabled) { _, newValue in
                         UserDefaults.standard.set(newValue, forKey: streamingDefaultsKey)
                     }
@@ -86,14 +87,14 @@ struct FluidAudioModelCardView: View {
             .fixedSize(horizontal: true, vertical: false)
         }
         .font(.system(size: 11))
-        .foregroundColor(Color(.secondaryLabelColor))
+        .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
         .lineLimit(1)
     }
 
     private var descriptionSection: some View {
         Text(model.description)
             .font(.system(size: 11))
-            .foregroundColor(Color(.secondaryLabelColor))
+            .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
             .lineLimit(2)
             .fixedSize(horizontal: false, vertical: true)
             .padding(.top, 4)
@@ -113,7 +114,7 @@ struct FluidAudioModelCardView: View {
                             .fontDesign(.monospaced)
                     }
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(Color(.secondaryLabelColor))
+                    .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
 
                     ProgressView(value: status.fractionCompleted)
                         .progressViewStyle(LinearProgressViewStyle())
@@ -130,7 +131,7 @@ struct FluidAudioModelCardView: View {
             if isCurrent {
                 Text("Default Model")
                     .font(.system(size: 12))
-                    .foregroundColor(Color(.secondaryLabelColor))
+                    .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
             } else if isDownloaded {
                 Button(action: {
                     Task {
@@ -156,7 +157,7 @@ struct FluidAudioModelCardView: View {
                     .foregroundColor(.white)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
-                    .background(Capsule().fill(Color.accentColor))
+                    .background(Capsule().fill(DreamersTheme.prismGradient))
                 }
                 .buttonStyle(.plain)
                 .disabled(isDownloading)

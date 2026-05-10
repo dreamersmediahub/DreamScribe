@@ -2,6 +2,7 @@ import SwiftUI
 import LLMkit
 
 struct APIKeyManagementView: View {
+    @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject private var aiService: AIService
     @State private var apiKey: String = ""
     @State private var showAlert = false
@@ -15,6 +16,9 @@ struct APIKeyManagementView: View {
     @State private var localCLICommandTemplate: String = ""
     @State private var localCLITimeoutSeconds: Double = LocalCLIService.defaultTimeoutSeconds
     @State private var isSyncingLocalCLIState = false
+    @State private var isTestingLocalCLI = false
+    @State private var localCLITestMessage: String?
+    @State private var localCLITestSucceeded: Bool?
     
     var body: some View {
         Section("AI Provider Integration") {
@@ -25,16 +29,24 @@ struct APIKeyManagementView: View {
                     }
                 }
                 .pickerStyle(.automatic)
-                .tint(.blue)
+                .tint(DreamersTheme.accentText(for: colorScheme))
                 
-                if aiService.isAPIKeyValid && aiService.selectedProvider != .ollama {
+                if aiService.selectedProvider == .localCLI {
                     Spacer()
                     Circle()
-                        .fill(Color.green)
+                        .fill(aiService.isAPIKeyValid ? DreamersTheme.success(for: colorScheme) : DreamersTheme.warning(for: colorScheme))
+                        .frame(width: 8, height: 8)
+                    Text(aiService.isAPIKeyValid ? "Configured" : "Not configured")
+                        .font(.subheadline)
+                        .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
+                } else if aiService.isAPIKeyValid && aiService.selectedProvider != .ollama {
+                    Spacer()
+                    Circle()
+                        .fill(DreamersTheme.success(for: colorScheme))
                         .frame(width: 8, height: 8)
                     Text("Connected")
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                 } else if aiService.selectedProvider == .ollama {
                     Spacer()
                     if isCheckingOllama {
@@ -42,18 +54,18 @@ struct APIKeyManagementView: View {
                             .controlSize(.small)
                     } else if !ollamaModels.isEmpty {
                         Circle()
-                            .fill(Color.green)
+                            .fill(DreamersTheme.success(for: colorScheme))
                             .frame(width: 8, height: 8)
                         Text("Connected")
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                     } else {
                         Circle()
-                            .fill(Color.red)
+                            .fill(DreamersTheme.danger(for: colorScheme))
                             .frame(width: 8, height: 8)
                         Text("Disconnected")
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                     }
                 }
             }
@@ -72,7 +84,7 @@ struct APIKeyManagementView: View {
                     if aiService.availableModels.isEmpty {
                         HStack {
                             Text("No models loaded")
-                                .foregroundColor(.secondary)
+                                .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                             Spacer()
                             Button(action: {
                                 Task {
@@ -122,7 +134,7 @@ struct APIKeyManagementView: View {
                     if isEditingURL {
                         HStack {
                             TextField("Base URL", text: $ollamaBaseURL)
-                                .textFieldStyle(.roundedBorder)
+                                .dreamersInputChrome()
                             
                             Button("Save") {
                                 aiService.updateOllamaBaseURL(ollamaBaseURL)
@@ -160,20 +172,46 @@ struct APIKeyManagementView: View {
                     }
 
                 } else if aiService.selectedProvider == .localCLI {
-                    VStack(alignment: .leading, spacing: 6) {
-                        HStack {
-                            Text("Command")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
+                    VStack(alignment: .leading, spacing: 10) {
+                        HStack(spacing: 10) {
+                            Label(aiService.localCLIDisplayName, systemImage: "terminal.fill")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
+
                             Spacer()
+
+                            Button {
+                                runLocalCLITest()
+                            } label: {
+                                HStack(spacing: 6) {
+                                    if isTestingLocalCLI {
+                                        ProgressView()
+                                            .controlSize(.small)
+                                    } else {
+                                        Image(systemName: "checkmark.seal.fill")
+                                    }
+                                    Text(isTestingLocalCLI ? "Testing" : "Test CLI")
+                                }
+                            }
+                            .disabled(isTestingLocalCLI || localCLICommandTemplate.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+
                             Menu("Load Template") {
                                 ForEach(LocalCLITemplate.allCases) { template in
                                     Button(template.displayName) {
                                         aiService.loadLocalCLITemplate(template)
                                         syncLocalCLIStateFromService()
+                                        localCLITestMessage = nil
+                                        localCLITestSucceeded = nil
                                     }
                                 }
                             }
+                        }
+
+                        HStack {
+                            Text("Command")
+                                .font(.subheadline)
+                                .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
+                            Spacer()
                         }
 
                         TextEditor(text: $localCLICommandTemplate)
@@ -181,18 +219,22 @@ struct APIKeyManagementView: View {
                             .multilineTextAlignment(.leading)
                             .frame(minHeight: 100)
                             .padding(4)
+                            .scrollContentBackground(.hidden)
                             .background(
                                 RoundedRectangle(cornerRadius: 8)
-                                    .fill(Color(NSColor.textBackgroundColor))
+                                    .fill(DreamersTheme.panelFill(for: colorScheme))
                             )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 8)
-                                    .stroke(Color.secondary.opacity(0.25), lineWidth: 1)
+                                    .stroke(DreamersTheme.panelStroke(for: colorScheme), lineWidth: 1)
                             )
+                            .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
                             .onChange(of: localCLICommandTemplate) { _, newValue in
                                 guard !isSyncingLocalCLIState else { return }
                                 if newValue != aiService.localCLICommandTemplate {
                                     aiService.updateLocalCLICommandTemplate(newValue)
+                                    localCLITestMessage = nil
+                                    localCLITestSucceeded = nil
                                 }
                             }
                     }
@@ -211,24 +253,34 @@ struct APIKeyManagementView: View {
                         aiService.updateLocalCLITimeoutSeconds(newValue)
                     }
 
-                    Text("Environment variables available: VOICEINK_SYSTEM_PROMPT, VOICEINK_USER_PROMPT, VOICEINK_FULL_PROMPT. VoiceInk also writes VOICEINK_FULL_PROMPT to stdin for every command.")
+                    Text("Environment variables available: DREAMSCRIBE_SYSTEM_PROMPT, DREAMSCRIBE_USER_PROMPT, DREAMSCRIBE_FULL_PROMPT. DreamScribe also writes DREAMSCRIBE_FULL_PROMPT to stdin. Legacy VOICEINK_* names still work for saved commands.")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
+
+                    if let localCLITestMessage {
+                        HStack(alignment: .top, spacing: 8) {
+                            Image(systemName: localCLITestSucceeded == true ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                                .foregroundStyle(localCLITestSucceeded == true ? DreamersTheme.success(for: colorScheme) : DreamersTheme.warning(for: colorScheme))
+                            Text(localCLITestMessage)
+                                .font(.caption)
+                                .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
+                        }
+                    }
 
                     if !aiService.isAPIKeyValid {
                         Text("Load a template or enter a command to enable Local CLI enhancement.")
                             .font(.caption)
-                            .foregroundColor(.orange)
+                            .foregroundStyle(DreamersTheme.warning(for: colorScheme))
                     }
 
                 } else if aiService.selectedProvider == .custom {
                     TextField("API Endpoint URL", text: $aiService.customBaseURL, prompt: Text("e.g. https://api.openai.com/v1/chat/completions"))
-                        .textFieldStyle(.roundedBorder)
+                        .dreamersInputChrome()
 
                     Divider()
 
                     TextField("Model Name", text: $aiService.customModel, prompt: Text("e.g. gemini-3.1-pro-preview, gpt-5.5"))
-                        .textFieldStyle(.roundedBorder)
+                        .dreamersInputChrome()
 
                     Divider()
 
@@ -242,7 +294,7 @@ struct APIKeyManagementView: View {
                         }
                     } else {
                         SecureField("API Key", text: $apiKey)
-                            .textFieldStyle(.roundedBorder)
+                            .dreamersInputChrome()
 
                         Button("Verify and Save") {
                             isVerifying = true
@@ -264,14 +316,14 @@ struct APIKeyManagementView: View {
                             Text("API Key")
                             Spacer()
                             Text("••••••••")
-                                .foregroundColor(.secondary)
+                                .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                             Button("Remove", role: .destructive) {
                                 aiService.clearAPIKey()
                             }
                         }
                     } else {
                         SecureField("API Key", text: $apiKey)
-                            .textFieldStyle(.roundedBorder)
+                            .dreamersInputChrome()
 
                         HStack {
                             if let url = getAPIKeyURL() {
@@ -281,10 +333,10 @@ struct APIKeyManagementView: View {
                                         Text("Get API Key")
                                     }
                                     .font(.caption)
-                                    .foregroundColor(.blue)
+                                    .foregroundStyle(DreamersTheme.accentText(for: colorScheme))
                                     .padding(.vertical, 4)
                                     .padding(.horizontal, 8)
-                                    .background(Color.blue.opacity(0.1))
+                                    .background(DreamersTheme.accentText(for: colorScheme).opacity(0.12))
                                     .cornerRadius(6)
                                 }
                                 .buttonStyle(.plain)
@@ -316,6 +368,8 @@ struct APIKeyManagementView: View {
                 }
             }
         }
+        .listRowBackground(DreamersTheme.panelFill(for: colorScheme))
+        .listRowSeparatorTint(DreamersTheme.accentText(for: colorScheme).opacity(0.26))
         .alert("Error", isPresented: $showAlert) {
             Button("OK", role: .cancel) { }
         } message: {
@@ -337,6 +391,27 @@ struct APIKeyManagementView: View {
         localCLITimeoutSeconds = aiService.localCLITimeoutSeconds
         DispatchQueue.main.async {
             isSyncingLocalCLIState = false
+        }
+    }
+
+    private func runLocalCLITest() {
+        isTestingLocalCLI = true
+        localCLITestMessage = nil
+        localCLITestSucceeded = nil
+
+        Task {
+            let result = await aiService.testLocalCLIConfiguration()
+            await MainActor.run {
+                switch result {
+                case .success(let output):
+                    localCLITestSucceeded = true
+                    localCLITestMessage = "Local CLI responded: \(output)"
+                case .failure(let error):
+                    localCLITestSucceeded = false
+                    localCLITestMessage = error
+                }
+                isTestingLocalCLI = false
+            }
         }
     }
     

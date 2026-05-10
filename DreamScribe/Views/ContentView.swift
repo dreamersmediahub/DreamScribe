@@ -82,64 +82,34 @@ struct ContentView: View {
 
     var body: some View {
         NavigationSplitView {
-            List(selection: $selectedView) {
-                Section {
-                    // App Header
-                    HStack(spacing: 6) {
-                        if let appIcon = NSImage(named: "AppIcon") {
-                            Image(nsImage: appIcon)
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 28, height: 28)
-                                .cornerRadius(8)
-                        }
-
-                        Text("DreamScribe")
-                            .font(.system(size: 14, weight: .semibold))
-
-                        #if !LOCAL_BUILD
-                        if case .licensed = licenseViewModel.licenseState {
-                            Text("PRO")
-                                .font(.system(size: 9, weight: .heavy))
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 4)
-                                .padding(.vertical, 2)
-                                .background(Color.blue)
-                                .cornerRadius(4)
-                        }
-                        #endif
-
-                        Spacer()
-                    }
-                    .padding(.vertical, 4)
-                }
-
-                ForEach(visibleViewTypes) { viewType in
-                    Section {
-                        NavigationLink(value: viewType) {
-                            SidebarItemView(viewType: viewType)
-                        }
-                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                        .listRowSeparator(.hidden)
-                    }
-                }
-            }
-            .listStyle(.sidebar)
-            .navigationTitle("DreamScribe")
-            .navigationSplitViewColumnWidth(210)
+            sidebar
+                .navigationTitle("DREAMScribe")
+                .navigationSplitViewColumnWidth(230)
         } detail: {
             if let selectedView = selectedView {
                 detailView(for: selectedView)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(DreamersAtmosphere().ignoresSafeArea())
                     .navigationTitle(selectedView.rawValue)
             } else {
-                Text("Select a view")
-                    .foregroundColor(.secondary)
+                ChromePanel {
+                    VStack(spacing: 10) {
+                        Image(systemName: "sidebar.leading")
+                            .font(.system(size: 28, weight: .light))
+                        Text("Select a view")
+                            .font(.headline)
+                    }
+                    .foregroundStyle(DreamersTheme.ColorToken.starWhite.opacity(0.78))
+                    .padding(28)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(DreamersAtmosphere().ignoresSafeArea())
             }
         }
         .navigationSplitViewStyle(.balanced)
         .frame(width: 950)
         .frame(minHeight: 730)
+        .tint(DreamersTheme.ColorToken.auroraCyan)
         .onAppear {
             logger.notice("ContentView appeared")
         }
@@ -172,6 +142,77 @@ struct ContentView: View {
                     break
                 }
             }
+        }
+    }
+
+    private var sidebar: some View {
+        ZStack {
+            DreamersAtmosphere()
+                .ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                sidebarHeader
+                    .padding(.horizontal, 14)
+                    .padding(.top, 16)
+                    .padding(.bottom, 14)
+
+                Rectangle()
+                    .fill(DreamersTheme.secondaryText(for: colorScheme).opacity(0.18))
+                    .frame(height: 1)
+                    .padding(.horizontal, 14)
+
+                ScrollView {
+                    VStack(spacing: 6) {
+                        ForEach(visibleViewTypes) { viewType in
+                            Button {
+                                selectedView = viewType
+                            } label: {
+                            SidebarItemView(
+                                viewType: viewType,
+                                isSelected: selectedView == viewType
+                            )
+                        }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 10)
+                }
+                .background(Color.clear)
+
+                Rectangle()
+                    .fill(DreamersTheme.secondaryText(for: colorScheme).opacity(0.16))
+                    .frame(height: 1)
+                    .padding(.horizontal, 14)
+
+                DreamersFooterMark()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 14)
+            }
+        }
+    }
+
+    private var sidebarHeader: some View {
+        HStack(alignment: .center, spacing: 10) {
+            DREAMScribeLockup(scale: .compact, includeSubline: true)
+
+            Spacer(minLength: 8)
+
+            #if !LOCAL_BUILD
+            if case .licensed = licenseViewModel.licenseState {
+                Text("PRO")
+                    .font(.system(size: 9, weight: .heavy, design: .monospaced))
+                    .tracking(0.8)
+                    .foregroundStyle(DreamersTheme.ColorToken.softInk)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 3)
+                    .background(
+                        RoundedRectangle(cornerRadius: DreamersTheme.Radius.small, style: .continuous)
+                            .fill(DreamersTheme.prismGradient)
+                    )
+            }
+            #endif
         }
     }
     
@@ -207,23 +248,38 @@ struct ContentView: View {
 }
 
 private struct SidebarItemView: View {
+    @Environment(\.colorScheme) private var colorScheme
     let viewType: ViewType
+    let isSelected: Bool
 
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: viewType.icon)
-                .font(.system(size: 18, weight: .medium))
-                .frame(width: 24, height: 24)
+                .font(.system(size: 15, weight: .semibold))
+                .frame(width: 20, height: 20)
+                .foregroundStyle(isSelected ? DreamersTheme.accentText(for: colorScheme) : DreamersTheme.secondaryText(for: colorScheme))
 
             Text(viewType.rawValue)
-                .font(.system(size: 14, weight: .medium))
+                .font(.system(size: 13, weight: isSelected ? .semibold : .medium))
+                .foregroundStyle(isSelected ? DreamersTheme.primaryText(for: colorScheme) : DreamersTheme.secondaryText(for: colorScheme))
+                .lineLimit(1)
 
             Spacer()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(Rectangle())
-        .padding(.vertical, 8)
-        .padding(.horizontal, 2)
+        .padding(.vertical, 7)
+        .padding(.horizontal, 8)
+        .background(
+            RoundedRectangle(cornerRadius: DreamersTheme.Radius.control, style: .continuous)
+                .fill(isSelected ? AnyShapeStyle(DreamersTheme.selectedPanelFill) : AnyShapeStyle(Color.clear))
+        )
+        .overlay(alignment: .leading) {
+            if isSelected {
+                Capsule()
+                    .fill(DreamersTheme.prismGradient)
+                    .frame(width: 3, height: 20)
+            }
+        }
     }
 }
-

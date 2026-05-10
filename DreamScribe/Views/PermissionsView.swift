@@ -83,6 +83,7 @@ class PermissionManager: ObservableObject {
 }
 
 struct PermissionCard: View {
+    @Environment(\.colorScheme) private var colorScheme
     let icon: String
     let title: String
     let description: String
@@ -100,12 +101,12 @@ struct PermissionCard: View {
                 // Icon with background
                 ZStack {
                     Circle()
-                        .fill(isGranted ? Color.green.opacity(0.15) : Color.orange.opacity(0.15))
+                        .fill(statusColor.opacity(0.15))
                         .frame(width: 44, height: 44)
 
                     Image(systemName: isGranted ? "\(icon).fill" : icon)
                         .font(.system(size: 20, weight: .semibold))
-                        .foregroundColor(isGranted ? .green : .orange)
+                        .foregroundStyle(statusColor)
                         .symbolRenderingMode(.hierarchical)
                 }
 
@@ -113,6 +114,7 @@ struct PermissionCard: View {
                     HStack {
                         Text(title)
                             .font(.headline)
+                            .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
                         if let message = infoTipMessage {
                             if let link = infoTipLink, !link.isEmpty {
                                 InfoTip(message, learnMoreURL: link)
@@ -123,7 +125,7 @@ struct PermissionCard: View {
                     }
                     Text(description)
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                 }
                 
                 Spacer()
@@ -143,21 +145,20 @@ struct PermissionCard: View {
                     }) {
                         Image(systemName: "arrow.clockwise")
                             .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(.secondary)
                             .rotationEffect(.degrees(isRefreshing ? 360 : 0))
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(ChromeIconButtonStyle())
                     .contentShape(Rectangle())
                     
                     if isGranted {
                         Image(systemName: "checkmark.seal.fill")
                             .font(.system(size: 20))
-                            .foregroundColor(.green)
+                            .foregroundStyle(statusColor)
                             .symbolRenderingMode(.hierarchical)
                     } else {
                         Image(systemName: "xmark.seal.fill")
                             .font(.system(size: 20))
-                            .foregroundColor(.orange)
+                            .foregroundStyle(statusColor)
                             .symbolRenderingMode(.hierarchical)
                     }
                 }
@@ -171,25 +172,21 @@ struct PermissionCard: View {
                         Image(systemName: "arrow.right")
                     }
                     .font(.headline)
-                    .foregroundColor(.white)
-                    .padding()
                     .frame(maxWidth: .infinity)
-                    .background(
-                        LinearGradient(
-                            colors: [Color.accentColor, Color.accentColor.opacity(0.8)],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                    .cornerRadius(10)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(PrismButtonStyle())
             }
         }
         .padding()
-        .background(CardBackground(isSelected: false))
-        .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.05), radius: 5, y: 2)
+        .background(
+            ChromePanel {
+                Color.clear
+            }
+        )
+    }
+
+    private var statusColor: Color {
+        isGranted ? DreamersTheme.success(for: colorScheme) : DreamersTheme.warning(for: colorScheme)
     }
 }
 
@@ -200,12 +197,12 @@ struct PermissionsView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 32) {
-                // Header
-                CompactHeroSection(
-                    icon: "shield.lefthalf.filled",
+                DreamersSectionHeader(
+                    label: "System Access",
                     title: "App Permissions",
-                    description: "DreamScribe requires the following permissions to function properly"
+                    subtitle: "DreamScribe requires the following permissions to function properly."
                 )
+                .frame(maxWidth: .infinity, alignment: .leading)
                 
                 // Permission Cards
                 VStack(spacing: 16) {
@@ -283,7 +280,7 @@ struct PermissionsView: View {
             }
             .padding(24)
         }
-        .background(Color(NSColor.controlBackgroundColor))
+        .background(DreamersAtmosphere().ignoresSafeArea())
         .onAppear {
             permissionManager.checkAllPermissions()
         }

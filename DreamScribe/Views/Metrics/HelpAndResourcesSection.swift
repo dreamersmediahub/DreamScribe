@@ -1,11 +1,13 @@
 import SwiftUI
 
 struct HelpAndResourcesSection: View {
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Help & Resources")
                 .font(.system(size: 20, weight: .bold, design: .rounded))
-                .foregroundColor(.primary.opacity(0.8))
+                .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
 
             VStack(alignment: .leading, spacing: 10) {
                 resourceLink(
@@ -37,12 +39,12 @@ struct HelpAndResourcesSection: View {
         }
         .padding(18)
         .background(
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .fill(Color(nsColor: .windowBackgroundColor))
+            RoundedRectangle(cornerRadius: DreamersTheme.Radius.panel, style: .continuous)
+                .fill(DreamersTheme.panelFill(for: colorScheme))
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .stroke(Color.primary.opacity(0.1), lineWidth: 1)
+            RoundedRectangle(cornerRadius: DreamersTheme.Radius.panel, style: .continuous)
+                .stroke(DreamersTheme.panelStroke(for: colorScheme), lineWidth: 1)
         )
     }
     
@@ -57,7 +59,7 @@ struct HelpAndResourcesSection: View {
             HStack {
                 Image(systemName: icon)
                     .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(.accentColor)
+                    .foregroundStyle(DreamersTheme.accentText(for: colorScheme))
                     .frame(width: 20)
                 
                 Text(title)
@@ -67,10 +69,11 @@ struct HelpAndResourcesSection: View {
                 Spacer()
                 
                 Image(systemName: "arrow.up.right")
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
             }
             .padding(12)
-            .background(Color.primary.opacity(0.05))
+            .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
+            .background(DreamersTheme.selectedPanelFill(for: colorScheme).opacity(0.55))
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 
         }

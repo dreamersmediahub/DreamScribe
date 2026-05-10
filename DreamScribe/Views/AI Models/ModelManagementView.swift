@@ -12,6 +12,7 @@ enum ModelFilter: String, CaseIterable, Identifiable {
 }
 
 struct ModelManagementView: View {
+    @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject private var whisperModelManager: WhisperModelManager
     @EnvironmentObject private var fluidAudioModelManager: FluidAudioModelManager
     @EnvironmentObject private var transcriptionModelManager: TranscriptionModelManager
@@ -54,7 +55,7 @@ struct ModelManagementView: View {
             .padding(40)
         }
         .frame(minWidth: 600, minHeight: 500)
-        .background(Color(NSColor.controlBackgroundColor))
+        .background(DreamersAtmosphere().ignoresSafeArea())
         .slidingPanel(isPresented: $isShowingSettings, width: settingsPanelWidth) {
             settingsPanelContent
         }
@@ -75,26 +76,22 @@ struct ModelManagementView: View {
                 Text("Model Settings")
                     .font(.headline)
                     .fontWeight(.semibold)
-                    .foregroundColor(.primary)
+                    .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
 
                 Spacer()
 
                 Button(action: { closeSettings() }) {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.secondary)
-                        .padding(6)
-                        .background(Color.secondary.opacity(0.1))
-                        .clipShape(Circle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(ChromeIconButtonStyle())
                 .help("Close")
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 16)
-            .background(Color(NSColor.windowBackgroundColor))
+            .background(DreamersTheme.panelFill(for: colorScheme))
             .overlay(
-                Divider().opacity(0.5), alignment: .bottom
+                Divider().overlay(DreamersTheme.panelStroke(for: colorScheme)), alignment: .bottom
             )
 
             // Content
@@ -103,18 +100,22 @@ struct ModelManagementView: View {
     }
     
     private var defaultModelSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Default Model")
-                .font(.headline)
-                .foregroundColor(.secondary)
-            Text(transcriptionModelManager.currentTranscriptionModel?.displayName ?? "No model selected")
-                .font(.title2)
-                .fontWeight(.bold)
+        ChromePanel {
+            VStack(alignment: .leading, spacing: 8) {
+                DreamersSectionHeader(
+                    label: "Default",
+                    title: "Default Model",
+                    subtitle: "Used when DreamScribe starts a new transcription."
+                )
+
+                Text(transcriptionModelManager.currentTranscriptionModel?.displayName ?? "No model selected")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
+            }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(CardBackground(isSelected: false))
-        .cornerRadius(10)
     }
 
     private var languageSelectionSection: some View {
@@ -123,6 +124,12 @@ struct ModelManagementView: View {
     
     private var availableModelsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
+            DreamersSectionHeader(
+                label: "Library",
+                title: "Available Models",
+                subtitle: "Choose the local, cloud, or custom transcription model for the current workflow."
+            )
+
             HStack {
                 // Modern compact pill switcher
                 HStack(spacing: 12) {
@@ -135,13 +142,15 @@ struct ModelManagementView: View {
                         }) {
                             Text(filter.rawValue)
                                 .font(.system(size: 14, weight: selectedFilter == filter ? .semibold : .medium))
-                                .foregroundColor(selectedFilter == filter ? .primary : .primary.opacity(0.7))
+                                .foregroundStyle(selectedFilter == filter ? DreamersTheme.primaryText(for: colorScheme) : DreamersTheme.secondaryText(for: colorScheme))
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 8)
-                                .background(
-                                    CardBackground(isSelected: selectedFilter == filter, cornerRadius: 22)
-                                )
                         }
+                        .background(
+                            ChromePanel(isSelected: selectedFilter == filter, cornerRadius: 22) {
+                                Color.clear
+                            }
+                        )
                         .buttonStyle(PlainButtonStyle())
                     }
                 }
@@ -155,13 +164,8 @@ struct ModelManagementView: View {
                 }) {
                     Image(systemName: "gear")
                         .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(isShowingSettings ? .accentColor : .primary.opacity(0.7))
-                        .padding(12)
-                        .background(
-                            CardBackground(isSelected: isShowingSettings, cornerRadius: 22)
-                        )
                 }
-                .buttonStyle(PlainButtonStyle())
+                .buttonStyle(ChromeIconButtonStyle(isSelected: isShowingSettings))
             }
             .padding(.bottom, 12)
             
@@ -226,11 +230,8 @@ struct ModelManagementView: View {
                                         .font(.system(size: 12, weight: .semibold))
                                 }
                                 .frame(maxWidth: .infinity)
-                                .padding(16)
-                                .background(CardBackground(isSelected: false))
-                                .cornerRadius(10)
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(PrismButtonStyle())
 
                             InfoTip(
                                 "Add a custom fine-tuned whisper model to use with DreamScribe. Select the downloaded .bin file.",
@@ -247,7 +248,7 @@ struct ModelManagementView: View {
                             Text("Only OpenAI-compatible transcription APIs are supported.")
                                 .font(.system(size: 12))
                         }
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                         .padding(.bottom, 4)
 
                         AddCustomModelCardView(
@@ -270,11 +271,11 @@ struct ModelManagementView: View {
         HStack(spacing: 10) {
             Image(systemName: "exclamationmark.triangle.fill")
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(.orange)
+                .foregroundStyle(DreamersTheme.warning(for: colorScheme))
 
             Text("Local models don't work reliably on Intel Macs")
                 .font(.system(size: 13, weight: .medium))
-                .foregroundColor(.primary.opacity(0.85))
+                .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
 
             Spacer()
 
@@ -289,18 +290,24 @@ struct ModelManagementView: View {
                     Image(systemName: "arrow.right")
                         .font(.system(size: 10, weight: .bold))
                 }
-                .foregroundColor(.orange)
+                .foregroundStyle(DreamersTheme.warning(for: colorScheme))
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
-                .background(Color.orange.opacity(0.12))
+                .background(DreamersTheme.warning(for: colorScheme).opacity(0.14))
                 .cornerRadius(6)
             }
             .buttonStyle(.plain)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
-        .background(Color.orange.opacity(0.08))
-        .cornerRadius(8)
+        .background(
+            RoundedRectangle(cornerRadius: DreamersTheme.Radius.panel, style: .continuous)
+                .fill(DreamersTheme.warning(for: colorScheme).opacity(0.10))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: DreamersTheme.Radius.panel, style: .continuous)
+                .stroke(DreamersTheme.warning(for: colorScheme).opacity(0.30), lineWidth: 0.8)
+        )
     }
 
     private var filteredModels: [any TranscriptionModel] {

@@ -12,73 +12,69 @@ struct OnboardingView: View {
     
     var body: some View {
         ZStack {
+            DreamersAtmosphere()
+                .ignoresSafeArea()
+
             GeometryReader { geometry in
-                ZStack {
-                    // Reusable background
-                    OnboardingBackgroundView()
-                    
-                    // Content container
-                    ScrollView(.vertical, showsIndicators: false) {
-                        VStack(spacing: 0) {
-                            // Content Area
-                            VStack(spacing: 60) {
-                                Spacer()
-                                    .frame(height: 40)
-                                
-                                // Title and subtitle
-                                VStack(spacing: 16) {
-                                    Text("Welcome to the Future of Typing")
-                                        .font(.system(size: min(geometry.size.width * 0.055, 42), weight: .bold, design: .rounded))
-                                        .foregroundColor(.white)
-                                        .opacity(textOpacity)
+                ScrollView(.vertical, showsIndicators: false) {
+                    VStack(spacing: 34) {
+                        Spacer(minLength: max(36, geometry.size.height * 0.10))
+
+                        ChromePanel {
+                            VStack(spacing: 24) {
+                                DREAMScribeLockup(scale: .hero)
+                                    .frame(maxWidth: 520)
+                                    .opacity(textOpacity)
+
+                                VStack(spacing: 10) {
+                                    Text("Creative dictation studio")
+                                        .font(.system(size: 24, weight: .semibold, design: .serif))
+                                        .foregroundStyle(DreamersTheme.ColorToken.starWhite)
+
+                                    Text("Capture voice, shape transcripts, and keep your writing flow inside the Dreamers landscape.")
+                                        .font(.system(size: 14, weight: .medium))
+                                        .foregroundStyle(DreamersTheme.ColorToken.starWhite.opacity(0.74))
                                         .multilineTextAlignment(.center)
-                                        .padding(.horizontal)
-                                    
-                                    Text("A New Way to Type")
-                                        .font(.system(size: min(geometry.size.width * 0.032, 24), weight: .medium, design: .rounded))
-                                        .foregroundColor(.white.opacity(0.7))
-                                        .opacity(textOpacity)
-                                        .multilineTextAlignment(.center)
+                                        .fixedSize(horizontal: false, vertical: true)
                                 }
-                                
+                                .opacity(textOpacity)
+
                                 if showSecondaryElements {
-                                    // Typewriter roles animation
                                     TypewriterRoles()
-                                        .frame(height: 160)
+                                        .frame(height: 92)
                                         .transition(.scale.combined(with: .opacity))
-                                        .padding(.horizontal, 40)
                                 }
-                            }
-                            .padding(.top, geometry.size.height * 0.15)
-                            
-                            Spacer(minLength: geometry.size.height * 0.2)
-                            
-                            // Bottom navigation
-                            if showSecondaryElements {
-                                VStack(spacing: 20) {
-                                    Button(action: {
-                                        withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
-                                            showPermissions = true
+
+                                if showSecondaryElements {
+                                    HStack(spacing: 14) {
+                                        Button(action: {
+                                            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                                                showPermissions = true
+                                            }
+                                        }) {
+                                            Label("Get Started", systemImage: "sparkles")
                                         }
-                                    }) {
-                                        Text("Get Started")
-                                            .font(.system(size: 18, weight: .semibold))
-                                            .foregroundColor(.black)
-                                            .frame(width: min(geometry.size.width * 0.3, 200), height: 50)
-                                            .background(Color.white)
-                                            .cornerRadius(25)
+                                        .buttonStyle(PrismButtonStyle())
+
+                                        SkipButton(text: "Skip Tour") {
+                                            hasCompletedOnboarding = true
+                                        }
                                     }
-                                    .buttonStyle(ScaleButtonStyle())
-                                    
-                                    SkipButton(text: "Skip Tour") {
-                                        hasCompletedOnboarding = true
-                                    }
+                                    .transition(.move(edge: .bottom).combined(with: .opacity))
                                 }
-                                .padding(.bottom, 35)
-                                .transition(.move(edge: .bottom).combined(with: .opacity))
                             }
+                            .padding(32)
                         }
+                        .frame(maxWidth: 680)
+                        .padding(.horizontal, 32)
+
+                        DreamersFooterMark()
+                            .opacity(showSecondaryElements ? 1 : 0)
+                            .animation(.easeOut(duration: 0.4), value: showSecondaryElements)
+
+                        Spacer(minLength: 28)
                     }
+                    .frame(maxWidth: .infinity)
                 }
             }
             
@@ -110,10 +106,10 @@ struct OnboardingView: View {
 // MARK: - Supporting Views
 struct TypewriterRoles: View {
     private let roles = [
-        "Your Writing Assistant",
-        "Your Vibe-Coding Assistant",
-        "Works Everywhere on Mac with a click",
-        "100% offline & private",
+        "Draft by voice",
+        "Transcribe private audio",
+        "Shape better transcripts",
+        "Ready for podcast workflows",
        
     ]
     
@@ -137,9 +133,9 @@ struct TypewriterRoles: View {
                     .foregroundStyle(
                         LinearGradient(
                             colors: [
-                                Color.accentColor,
-                                Color.accentColor.opacity(0.8),
-                                Color.white.opacity(0.9)
+                                DreamersTheme.ColorToken.auroraCyan,
+                                DreamersTheme.ColorToken.blushPink,
+                                DreamersTheme.ColorToken.starWhite
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
@@ -152,8 +148,8 @@ struct TypewriterRoles: View {
                     .foregroundStyle(
                         LinearGradient(
                             colors: [
-                                Color.accentColor,
-                                Color.accentColor.opacity(0.8)
+                                DreamersTheme.ColorToken.auroraCyan,
+                                DreamersTheme.ColorToken.blushPink
                             ],
                             startPoint: .top,
                             endPoint: .bottom
@@ -163,7 +159,7 @@ struct TypewriterRoles: View {
                     .animation(.easeInOut(duration: cursorBlinkSpeed).repeatForever(), value: showCursor)
             }
             .multilineTextAlignment(.center)
-            .shadow(color: Color.accentColor.opacity(0.5), radius: 15, x: 0, y: 0)
+            .shadow(color: DreamersTheme.ColorToken.auroraCyan.opacity(0.24), radius: 15, x: 0, y: 0)
             .padding(.horizontal)
         }
         .frame(maxWidth: .infinity)
@@ -237,8 +233,8 @@ struct SkipButton: View {
     
     var body: some View {
         Text(text)
-            .font(.system(size: 13, weight: .regular))
-            .foregroundColor(.white.opacity(0.2))
+            .font(.system(size: 13, weight: .medium))
+            .foregroundStyle(DreamersTheme.ColorToken.starWhite.opacity(0.58))
             .onTapGesture(perform: action)
     }
 }
@@ -370,4 +366,3 @@ struct ScaleButtonStyle: ButtonStyle {
 #Preview {
     OnboardingView(hasCompletedOnboarding: .constant(false))
 } 
-

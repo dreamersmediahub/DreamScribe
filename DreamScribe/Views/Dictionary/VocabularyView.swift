@@ -9,6 +9,7 @@ enum VocabularySortMode: String {
 struct VocabularyView: View {
     @Query private var vocabularyWords: [VocabularyWord]
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.colorScheme) private var colorScheme
     @ObservedObject var whisperPrompt: WhisperPrompt
     @State private var newWord = ""
     @State private var showAlert = false
@@ -44,21 +45,22 @@ struct VocabularyView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            GroupBox {
+            ChromePanel {
                 Label {
                     Text("Add words to help DreamScribe recognize them properly. (Requires AI enhancement)")
                         .font(.system(size: 12))
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                         .fixedSize(horizontal: false, vertical: true)
                 } icon: {
                     Image(systemName: "info.circle.fill")
-                        .foregroundColor(.blue)
+                        .foregroundStyle(DreamersTheme.accentText(for: colorScheme))
                 }
+                .padding(12)
             }
 
             HStack(spacing: 8) {
                 TextField("Add word to vocabulary", text: $newWord)
-                    .textFieldStyle(.roundedBorder)
+                    .dreamersInputChrome()
                     .font(.system(size: 13))
                     .onSubmit { addWords() }
 
@@ -66,10 +68,10 @@ struct VocabularyView: View {
                     Button(action: addWords) {
                         Image(systemName: "plus.circle.fill")
                             .symbolRenderingMode(.hierarchical)
-                            .foregroundStyle(.blue)
+                            .foregroundStyle(DreamersTheme.accentText(for: colorScheme))
                             .font(.system(size: 16, weight: .semibold))
                     }
-                    .buttonStyle(.borderless)
+                    .buttonStyle(.plain)
                     .disabled(newWord.isEmpty)
                     .help("Add word")
                 }
@@ -82,11 +84,11 @@ struct VocabularyView: View {
                         HStack(spacing: 4) {
                             Text("Vocabulary Words (\(vocabularyWords.count))")
                                 .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(.secondary)
+                                .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
 
                             Image(systemName: sortMode == .wordAsc ? "chevron.up" : "chevron.down")
                                 .font(.caption)
-                                .foregroundColor(.accentColor)
+                                .foregroundStyle(DreamersTheme.accentText(for: colorScheme))
                         }
                     }
                     .buttonStyle(.plain)
@@ -141,6 +143,7 @@ struct VocabularyView: View {
 }
 
 struct VocabularyWordView: View {
+    @Environment(\.colorScheme) private var colorScheme
     let item: VocabularyWord
     let onDelete: () -> Void
     @State private var isDeleteHovered = false
@@ -150,12 +153,12 @@ struct VocabularyWordView: View {
             Text(item.word)
                 .font(.system(size: 13))
                 .lineLimit(1)
-                .foregroundColor(.primary)
+                .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
 
             Button(action: onDelete) {
                 Image(systemName: "xmark.circle.fill")
                     .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(isDeleteHovered ? .red : .secondary)
+                    .foregroundStyle(isDeleteHovered ? DreamersTheme.danger(for: colorScheme) : DreamersTheme.secondaryText(for: colorScheme))
                     .contentTransition(.symbolEffect(.replace))
             }
             .buttonStyle(.borderless)
@@ -170,11 +173,11 @@ struct VocabularyWordView: View {
         .padding(.vertical, 6)
         .background {
             RoundedRectangle(cornerRadius: 6)
-                .fill(Color(.windowBackgroundColor).opacity(0.4))
+                .fill(DreamersTheme.panelFill(for: colorScheme))
         }
         .overlay {
             RoundedRectangle(cornerRadius: 6)
-                .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
+                .stroke(DreamersTheme.panelStroke(for: colorScheme), lineWidth: 1)
         }
         .shadow(color: Color.black.opacity(0.05), radius: 2, y: 1)
     }

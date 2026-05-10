@@ -3,6 +3,7 @@ import AppKit
 
 // MARK: - Native Apple Model Card View
 struct NativeAppleModelCardView: View {
+    @Environment(\.colorScheme) private var colorScheme
     let model: NativeAppleModel
     let isCurrent: Bool
     var setDefaultAction: () -> Void
@@ -28,7 +29,7 @@ struct NativeAppleModelCardView: View {
         HStack(alignment: .firstTextBaseline) {
             Text(model.displayName)
                 .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(Color(.labelColor))
+                .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
             
             Spacer()
         }
@@ -39,25 +40,25 @@ struct NativeAppleModelCardView: View {
             // Native Apple
             Label("Native Apple", systemImage: "apple.logo")
                 .font(.system(size: 11))
-                .foregroundColor(Color(.secondaryLabelColor))
+                .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                 .lineLimit(1)
             
             // Language
             Label(model.language, systemImage: "globe")
                 .font(.system(size: 11))
-                .foregroundColor(Color(.secondaryLabelColor))
+                .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                 .lineLimit(1)
             
             // On-Device
             Label("On-Device", systemImage: "checkmark.shield")
                 .font(.system(size: 11))
-                .foregroundColor(Color(.secondaryLabelColor))
+                .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                 .lineLimit(1)
             
             // Requires macOS 26+
             Label("macOS 26+", systemImage: "macbook")
                 .font(.system(size: 11))
-                .foregroundColor(Color(.secondaryLabelColor))
+                .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                 .lineLimit(1)
         }
         .lineLimit(1)
@@ -66,7 +67,7 @@ struct NativeAppleModelCardView: View {
     private var descriptionSection: some View {
         Text(model.description)
             .font(.system(size: 11))
-            .foregroundColor(Color(.secondaryLabelColor))
+            .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
             .lineLimit(2)
             .fixedSize(horizontal: false, vertical: true)
             .padding(.top, 4)
@@ -77,7 +78,7 @@ struct NativeAppleModelCardView: View {
             if isCurrent {
                 Text("Default Model")
                     .font(.system(size: 12))
-                    .foregroundColor(Color(.secondaryLabelColor))
+                    .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
             } else {
                 Button(action: setDefaultAction) {
                     Text("Set as Default")
@@ -88,4 +89,4 @@ struct NativeAppleModelCardView: View {
             }
         }
     }
-} 
+}

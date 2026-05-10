@@ -25,6 +25,7 @@ struct VoiceInkApp: App {
     @StateObject private var activeWindowService = ActiveWindowService.shared
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @AppStorage("enableAnnouncements") private var enableAnnouncements = true
+    @AppStorage("appearanceMode") private var appearanceModeRaw = AppearanceMode.system.rawValue
     @State private var showMenuBarIcon = true
     @State private var splashFinished = false
 
@@ -97,6 +98,10 @@ struct VoiceInkApp: App {
 
         container = resolvedContainer
         containerInitializationFailed = initializationFailed
+
+        if !initializationFailed {
+            _ = SuperwhisperImportService.shared.importIfNeeded(context: resolvedContainer.mainContext)
+        }
 
         // Initialize services with proper sharing of instances
         let aiService = AIService()
@@ -406,6 +411,8 @@ struct VoiceInkApp: App {
                     .zIndex(100)
             }
             }
+            .preferredColorScheme((AppearanceMode(rawValue: appearanceModeRaw) ?? .system).colorScheme)
+            .tint(DreamersTheme.ColorToken.auroraCyan)
         }
         .windowStyle(.hiddenTitleBar)
         .defaultSize(width: 950, height: 730)

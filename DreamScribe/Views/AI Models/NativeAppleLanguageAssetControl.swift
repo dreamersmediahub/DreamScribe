@@ -16,6 +16,7 @@ private enum NativeAppleSpeechAssetState: Equatable {
 }
 
 struct NativeAppleLanguageAssetControl: View {
+    @Environment(\.colorScheme) private var colorScheme
     private let logger = Logger(subsystem: "co.dreamersmedia.dreamscribe", category: "NativeAppleLanguageAssetControl")
 
     let localeIdentifier: String
@@ -72,13 +73,13 @@ struct NativeAppleLanguageAssetControl: View {
         case .notSupported:
             Image(systemName: "exclamationmark.triangle")
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                 .frame(width: 28, height: 24)
                 .help("This language is not supported by Apple Speech.")
         case .assetManagementUnavailable:
             Image(systemName: "exclamationmark.triangle")
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                 .frame(width: 28, height: 24)
                 .help("Apple Speech asset management is not available on this system.")
         case .failed(let message):

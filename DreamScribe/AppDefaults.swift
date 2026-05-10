@@ -38,6 +38,7 @@ enum AppDefaults {
 
             // UI & Behavior
             "IsMenuBarOnly": false,
+            "appearanceMode": "system",
             "powerModePersistConfig": false,
             // Hotkey
             "isMiddleClickToggleEnabled": false,

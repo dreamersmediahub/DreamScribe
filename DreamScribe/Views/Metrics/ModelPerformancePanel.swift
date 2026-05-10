@@ -32,6 +32,7 @@ enum TimeFilter: String, CaseIterable, Identifiable {
 // MARK: - Panel shell (owns filter state)
 
 struct ModelPerformancePanel: View {
+    @Environment(\.colorScheme) private var colorScheme
     @AppStorage("modelPerfPanelFilter") private var filterRaw: String = TimeFilter.last7Days.rawValue
     let onClose: () -> Void
 
@@ -42,8 +43,8 @@ struct ModelPerformancePanel: View {
             header
                 .padding(.horizontal, 20)
                 .padding(.vertical, 12)
-                .background(Color(NSColor.windowBackgroundColor))
-                .overlay(Divider().opacity(0.5), alignment: .bottom)
+                .background(DreamersTheme.panelFill(for: colorScheme))
+                .overlay(Divider().overlay(DreamersTheme.panelStroke(for: colorScheme)), alignment: .bottom)
                 .zIndex(1)
 
             ModelPerformancePanelContent(filter: filter)
@@ -54,6 +55,7 @@ struct ModelPerformancePanel: View {
         HStack(spacing: 10) {
             Text("Model Performance")
                 .font(.headline.weight(.semibold))
+                .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
             Spacer()
             Picker("", selection: Binding(get: { filter }, set: { filterRaw = $0.rawValue })) {
                 ForEach(TimeFilter.allCases) { f in
@@ -66,9 +68,9 @@ struct ModelPerformancePanel: View {
             Button(action: onClose) {
                 Image(systemName: "xmark")
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                     .padding(6)
-                    .background(Color.secondary.opacity(0.1))
+                    .background(DreamersTheme.selectedPanelFill(for: colorScheme))
                     .clipShape(Circle())
             }
             .buttonStyle(.plain)
@@ -79,6 +81,7 @@ struct ModelPerformancePanel: View {
 // MARK: - Content (owns @Query, reacts to filter)
 
 private struct ModelPerformancePanelContent: View {
+    @Environment(\.colorScheme) private var colorScheme
     @Query private var metrics: [SessionMetric]
 
     init(filter: TimeFilter) {
@@ -143,10 +146,10 @@ private struct ModelPerformancePanelContent: View {
         VStack(spacing: 8) {
             Image(systemName: "chart.bar.xaxis")
                 .font(.system(size: 32, weight: .light))
-                .foregroundColor(.secondary)
+                .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
             Text("No data for this period")
                 .font(.subheadline)
-                .foregroundColor(.secondary)
+                .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -173,7 +176,7 @@ private struct ModelPerformancePanelContent: View {
                     .minimumScaleFactor(0.7)
                 Text("\(stat.sessionCount) sessions")
                     .font(.system(size: 10))
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
             }
             .frame(maxWidth: .infinity)
 
@@ -183,7 +186,7 @@ private struct ModelPerformancePanelContent: View {
                     .foregroundColor(.mint)
                 Text(stat.speedFactor >= 1.0 ? "Faster than Real-time" : "Slower than Real-time")
                     .font(.system(size: 10))
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
             }
 
             Divider().padding(.horizontal, 8)
@@ -193,9 +196,9 @@ private struct ModelPerformancePanelContent: View {
                     Text(formatDuration(stat.avgAudioDuration))
                         .font(.system(size: 11, weight: .semibold, design: .monospaced))
                         .foregroundColor(.indigo)
-                    Text("Avg. Audio")
-                        .font(.system(size: 9))
-                        .foregroundColor(.secondary)
+                Text("Avg. Audio")
+                    .font(.system(size: 9))
+                    .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                 }
                 .frame(maxWidth: .infinity)
 
@@ -207,9 +210,9 @@ private struct ModelPerformancePanelContent: View {
                     Text(String(format: "%.2fs", stat.avgProcessingTime))
                         .font(.system(size: 11, weight: .semibold, design: .monospaced))
                         .foregroundColor(.teal)
-                    Text("Avg. Processing")
-                        .font(.system(size: 9))
-                        .foregroundColor(.secondary)
+                Text("Avg. Processing")
+                    .font(.system(size: 9))
+                    .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                 }
                 .frame(maxWidth: .infinity)
             }
@@ -241,7 +244,7 @@ private struct ModelPerformancePanelContent: View {
                     .minimumScaleFactor(0.7)
                 Text("\(stat.sessionCount) sessions")
                     .font(.system(size: 10))
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
             }
             .frame(maxWidth: .infinity)
 
@@ -251,7 +254,7 @@ private struct ModelPerformancePanelContent: View {
                     .foregroundColor(.indigo)
                 Text("Avg. Enhancement Time")
                     .font(.system(size: 10))
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
             }
         }
         .padding(14)
@@ -264,7 +267,7 @@ private struct ModelPerformancePanelContent: View {
     private func sectionHeader(_ title: String) -> some View {
         Text(title)
             .font(.system(size: 12, weight: .semibold))
-            .foregroundColor(.secondary)
+            .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
             .textCase(.uppercase)
             .tracking(0.5)
     }

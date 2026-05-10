@@ -1,102 +1,94 @@
 #!/usr/bin/env python3
 """
-Generate an iridescent DREAMERS wordmark PNG and add it to the asset catalog
-so MetricsContent.swift can show it as the dashboard hero.
+Build the generated DREAMScribe wordmark asset catalog.
+
+The source PNG is an image-generation concept approved for this branch. This
+script removes the pale matte, crops the logo, and emits retina images for
+DreamScribeWordmark.imageset.
 """
 
 from __future__ import annotations
 import json
-import re
-import subprocess
+import shutil
 from pathlib import Path
 
+from PIL import Image
+
 ROOT = Path(__file__).parent
-SRC_SVG = ROOT / "source" / "wordmark.svg"
+SRC_PNG = ROOT / "source" / "dreamscribe-wordmark-generated.png"
 OUT_DIR = ROOT / "generated"
-ASSETS_DIR = ROOT.parent / "VoiceInk" / "Assets.xcassets" / "DreamersWordmark.imageset"
+ASSETS_ROOT = ROOT.parent / "DreamScribe" / "Assets.xcassets"
+ASSETS_DIR = ASSETS_ROOT / "DreamScribeWordmark.imageset"
 
-# Match the icon palette
-PRISM_STOPS = [
-    (0,   "#5BC3DB"),
-    (30,  "#8B7DD0"),
-    (55,  "#DB6DB0"),
-    (78,  "#DBC470"),
-    (100, "#5DC09F"),
-]
-
-# Render at 3x retina width for the largest expected display (~520pt wide).
-TARGET_W = 1560
+TARGET_WIDTHS = {
+    "": 520,
+    "@2x": 1040,
+    "@3x": 1560,
+}
 
 
-def build_recolored_svg() -> str:
-    src = SRC_SVG.read_text()
-    # Wordmark has multiple <path class="cls-1"> elements — give them all the prism fill.
-    # Inject defs and a class style. Easier: replace the class definition.
-    stops_xml = "\n      ".join(
-        f'<stop offset="{pct}%" stop-color="{c}"/>' for pct, c in PRISM_STOPS
-    )
-    defs = f'''<defs>
-    <linearGradient id="prism" x1="0%" y1="0%" x2="100%" y2="100%">
-      {stops_xml}
-    </linearGradient>
-  </defs>'''
+def matte_to_alpha(image: Image.Image) -> Image.Image:
+    rgba = image.convert("RGBA")
+    background = rgba.getpixel((0, 0))[:3]
+    pixels = rgba.load()
+    width, height = rgba.size
 
-    # Insert defs just inside the <svg> element
-    src = re.sub(r'(<svg[^>]*>)', r'\1\n  ' + defs, src, count=1)
+    for y in range(height):
+        for x in range(width):
+            r, g, b, a = pixels[x, y]
+            distance = ((r - background[0]) ** 2 + (g - background[1]) ** 2 + (b - background[2]) ** 2) ** 0.5
 
-    # Replace path fills: original is class-based black; force url(#prism)
-    src = re.sub(r'<path\b', '<path fill="url(#prism)"', src)
+            if distance < 33 and r > 220 and g > 225 and b > 235:
+                alpha = 0
+            elif distance < 70 and r > 205 and g > 210 and b > 225:
+                alpha = int(min(255, max(0, (distance - 33) / 37 * 255)))
+            else:
+                alpha = a
 
-    return src
+            pixels[x, y] = (r, g, b, alpha)
+
+    return rgba
+
+
+def crop_logo(image: Image.Image) -> Image.Image:
+    bbox = image.getchannel("A").getbbox()
+    if bbox is None:
+        raise SystemExit("No visible logo pixels after matte removal")
+
+    pad = 40
+    left = max(0, bbox[0] - pad)
+    top = max(0, bbox[1] - pad)
+    right = min(image.width, bbox[2] + pad)
+    bottom = min(image.height, bbox[3] + pad)
+    return image.crop((left, top, right, bottom))
 
 
 def main() -> None:
+    if not SRC_PNG.exists():
+        raise SystemExit(f"Missing generated wordmark source: {SRC_PNG}")
+
     OUT_DIR.mkdir(exist_ok=True)
     ASSETS_DIR.mkdir(parents=True, exist_ok=True)
 
-    out_svg = OUT_DIR / "wordmark-iridescent.svg"
-    out_svg.write_text(build_recolored_svg())
+    logo = crop_logo(matte_to_alpha(Image.open(SRC_PNG)))
+    transparent_source = OUT_DIR / "dreamscribe-wordmark-transparent.png"
+    logo.save(transparent_source)
+    print(f"  wrote {transparent_source.relative_to(ROOT.parent)}")
 
-    # Aspect ratio: 1714.15 / 328.32 = 5.22
-    height = round(TARGET_W * 328.32 / 1714.15)
+    for suffix, target_width in TARGET_WIDTHS.items():
+        height = round(logo.height * (target_width / logo.width))
+        resized = logo.resize((target_width, height), Image.Resampling.LANCZOS)
+        filename = f"dreamscribe-wordmark{suffix}.png"
+        out = OUT_DIR / filename
+        resized.save(out)
+        shutil.copy2(out, ASSETS_DIR / filename)
+        print(f"  rendered {target_width}x{height} -> {filename}")
 
-    out_png = OUT_DIR / "wordmark@3x.png"
-    subprocess.run(
-        [
-            "rsvg-convert",
-            "--width", str(TARGET_W),
-            "--height", str(height),
-            "--output", str(out_png),
-            str(out_svg),
-        ],
-        check=True,
-    )
-    print(f"  rendered {TARGET_W}x{height} -> {out_png.name}")
-
-    # Also generate 2x and 1x for the asset catalog
-    for scale, suffix in [(2, "@2x"), (1, "")]:
-        w = TARGET_W * scale // 3
-        h = height * scale // 3
-        out = OUT_DIR / f"wordmark{suffix}.png"
-        subprocess.run(
-            ["rsvg-convert", "--width", str(w), "--height", str(h),
-             "--output", str(out), str(out_svg)],
-            check=True,
-        )
-        print(f"  rendered {w}x{h} -> {out.name}")
-
-    # Copy into the asset catalog
-    for suffix, fname in [("", "wordmark.png"), ("@2x", "wordmark@2x.png"), ("@3x", "wordmark@3x.png")]:
-        src = OUT_DIR / fname
-        dst = ASSETS_DIR / fname
-        dst.write_bytes(src.read_bytes())
-
-    # Asset catalog manifest
     contents = {
         "images": [
-            {"idiom": "universal", "filename": "wordmark.png",     "scale": "1x"},
-            {"idiom": "universal", "filename": "wordmark@2x.png",  "scale": "2x"},
-            {"idiom": "universal", "filename": "wordmark@3x.png",  "scale": "3x"},
+            {"idiom": "universal", "filename": "dreamscribe-wordmark.png", "scale": "1x"},
+            {"idiom": "universal", "filename": "dreamscribe-wordmark@2x.png", "scale": "2x"},
+            {"idiom": "universal", "filename": "dreamscribe-wordmark@3x.png", "scale": "3x"},
         ],
         "info": {"author": "xcode", "version": 1},
     }

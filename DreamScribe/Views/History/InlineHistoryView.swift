@@ -3,6 +3,7 @@ import SwiftData
 
 struct InlineHistoryView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.colorScheme) private var colorScheme
     @State private var searchText = ""
     @State private var expandedId: UUID?
     @State private var selectedTranscriptions: Set<Transcription> = []
@@ -85,7 +86,7 @@ struct InlineHistoryView: View {
         }
         .animation(.easeInOut(duration: 0.2), value: selectedTranscriptions.isEmpty)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(NSColor.controlBackgroundColor))
+        .background(DreamersAtmosphere().ignoresSafeArea())
         .overlay {
             Color.black.opacity(isPanelPresented ? 0.1 : 0)
                 .ignoresSafeArea()
@@ -103,10 +104,10 @@ struct InlineHistoryView: View {
                 panelContent
                     .frame(width: 400)
                     .frame(maxHeight: .infinity)
-                    .background(Color(NSColor.windowBackgroundColor))
+                    .background(DreamersTheme.ColorToken.softInk.opacity(0.92))
                     .overlay(alignment: .leading) {
                         Rectangle()
-                            .fill(Color(NSColor.separatorColor))
+                            .fill(DreamersTheme.ColorToken.starWhite.opacity(0.18))
                             .frame(width: 1)
                     }
                     .shadow(color: .black.opacity(0.08), radius: 8, x: -2, y: 0)
@@ -153,29 +154,35 @@ struct InlineHistoryView: View {
         HStack(spacing: 10) {
             HStack(spacing: 6) {
                 Image(systemName: "magnifyingglass")
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                     .font(.system(size: 12))
                 TextField("Search transcriptions...", text: $searchText)
                     .textFieldStyle(.plain)
                     .font(.system(size: 13))
+                    .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
             .background(
                 Capsule()
-                    .fill(Color.secondary.opacity(0.08))
+                    .fill(DreamersTheme.panelFill(for: colorScheme))
+            )
+            .overlay(
+                Capsule()
+                    .stroke(DreamersTheme.panelStroke(for: colorScheme), lineWidth: 0.8)
             )
             .frame(maxWidth: .infinity)
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 10)
+        .background(DreamersTheme.panelFill(for: colorScheme))
     }
 
     private var selectionBar: some View {
         HStack(spacing: 16) {
             Text("\(selectedTranscriptions.count) selected")
                 .font(.system(size: 13, weight: .medium))
-                .foregroundColor(.secondary)
+                .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
 
             Spacer()
 
@@ -187,7 +194,7 @@ struct InlineHistoryView: View {
                     .font(.system(size: 12, weight: .medium))
             }
             .buttonStyle(.plain)
-            .foregroundColor(.secondary)
+            .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
 
             Button(action: {
                 exportService.exportTranscriptionsToCSV(transcriptions: Array(selectedTranscriptions))
@@ -196,14 +203,14 @@ struct InlineHistoryView: View {
                     .font(.system(size: 12, weight: .medium))
             }
             .buttonStyle(.plain)
-            .foregroundColor(.secondary)
+            .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
 
             Button(action: { showDeleteConfirmation = true }) {
                 Label("Delete", systemImage: "trash")
                     .font(.system(size: 12, weight: .medium))
             }
             .buttonStyle(.plain)
-            .foregroundColor(.red.opacity(0.8))
+            .foregroundStyle(DreamersTheme.danger(for: colorScheme))
 
             Divider()
                 .frame(height: 16)
@@ -214,38 +221,46 @@ struct InlineHistoryView: View {
                 }
                 .font(.system(size: 12, weight: .medium))
                 .buttonStyle(.plain)
-                .foregroundColor(.secondary)
+                .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
             } else {
                 Button("Select All") {
                     Task { await selectAllTranscriptions() }
                 }
                 .font(.system(size: 12, weight: .medium))
                 .buttonStyle(.plain)
-                .foregroundColor(.secondary)
+                .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
             }
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 10)
         .background(
-            Color(NSColor.windowBackgroundColor)
-                .shadow(color: Color.black.opacity(0.1), radius: 3, y: -2)
+            DreamersTheme.panelFill(for: colorScheme)
+                .shadow(color: DreamersTheme.ColorToken.softInk.opacity(0.20), radius: 3, y: -2)
         )
     }
 
     // MARK: - Empty State
 
     private var emptyStateView: some View {
-        VStack(spacing: 12) {
+        VStack {
             Spacer()
-            Image(systemName: "doc.text.magnifyingglass")
-                .font(.system(size: 40))
-                .foregroundColor(.secondary)
-            Text(searchText.isEmpty ? "No transcriptions yet" : "No results found")
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(.secondary)
-            Text(searchText.isEmpty ? "Your transcription history will appear here" : "Try a different search term")
-                .font(.system(size: 13))
-                .foregroundColor(.secondary.opacity(0.8))
+            ChromePanel {
+                VStack(spacing: 12) {
+                    Image(systemName: "doc.text.magnifyingglass")
+                        .font(.system(size: 40))
+                        .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
+
+                    Text(searchText.isEmpty ? "No transcriptions yet" : "No results found")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
+
+                    Text(searchText.isEmpty ? "Your transcription history will appear here" : "Try a different search term")
+                        .font(.system(size: 13))
+                        .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
+                }
+                .padding(28)
+            }
+            .frame(maxWidth: 360)
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -299,7 +314,7 @@ struct InlineHistoryView: View {
             }
         }
         .formStyle(.grouped)
-        .scrollContentBackground(.hidden)
+        .dreamersFormChrome()
     }
 
     // MARK: - Sliding Panel
@@ -339,16 +354,13 @@ struct InlineHistoryView: View {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .medium))
                         .foregroundColor(.secondary)
-                        .padding(6)
-                        .background(Color.secondary.opacity(0.1))
-                        .clipShape(Circle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(ChromeIconButtonStyle())
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 12)
-            .background(Color(NSColor.windowBackgroundColor))
-            .overlay(Divider().opacity(0.5), alignment: .bottom)
+            .background(DreamersTheme.ColorToken.softInk.opacity(0.22))
+            .overlay(Divider().overlay(DreamersTheme.ColorToken.starWhite.opacity(0.18)), alignment: .bottom)
             .zIndex(1)
 
             if let transcription = panelTranscription {
@@ -487,6 +499,7 @@ struct InlineHistoryView: View {
 // MARK: - History Card Row
 
 private struct HistoryCardRow: View {
+    @Environment(\.colorScheme) private var colorScheme
     let transcription: Transcription
     let isExpanded: Bool
     let isChecked: Bool
@@ -527,13 +540,13 @@ private struct HistoryCardRow: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(transcription.timestamp, format: .dateTime.month(.abbreviated).day().hour().minute())
                         .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
 
                     if !isExpanded {
                         Text(transcription.enhancedText ?? transcription.text)
                             .font(.system(size: 13))
                             .lineLimit(2)
-                            .foregroundColor(.primary)
+                            .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
                     }
                 }
 
@@ -541,7 +554,7 @@ private struct HistoryCardRow: View {
 
                 Image(systemName: "chevron.right")
                     .font(.caption2.weight(.semibold))
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                     .rotationEffect(.degrees(isExpanded ? 90 : 0))
                     .animation(.easeInOut(duration: 0.2), value: isExpanded)
             }
@@ -570,12 +583,12 @@ private struct HistoryCardRow: View {
                         } label: {
                             Text(tab.rawValue)
                                 .font(.system(size: 11, weight: .medium))
-                                .foregroundColor(selectedTab == tab ? .primary : .secondary)
+                                .foregroundStyle(selectedTab == tab ? DreamersTheme.primaryText(for: colorScheme) : DreamersTheme.secondaryText(for: colorScheme))
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 4)
                                 .background(
                                     Capsule()
-                                        .fill(selectedTab == tab ? Color.secondary.opacity(0.15) : Color.clear)
+                                        .fill(selectedTab == tab ? DreamersTheme.selectedPanelFill(for: colorScheme) : LinearGradient(colors: [.clear], startPoint: .top, endPoint: .bottom))
                                 )
                         }
                         .buttonStyle(.plain)
@@ -605,9 +618,9 @@ private struct HistoryCardRow: View {
                 HStack {
                     Spacer()
                     Button(action: onShowInfo) {
-                        Image(systemName: "info.circle")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(.secondary)
+                    Image(systemName: "info.circle")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                     }
                     .buttonStyle(.plain)
                     .help("View details")
@@ -617,4 +630,3 @@ private struct HistoryCardRow: View {
     }
 
 }
-

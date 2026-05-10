@@ -3,6 +3,7 @@ import SwiftData
 import os
 
 struct MetricsContent: View {
+    @Environment(\.colorScheme) private var colorScheme
     private let logger = Logger(subsystem: "co.dreamersmedia.dreamscribe", category: "MetricsContent")
     let modelContext: ModelContext
     let licenseState: LicenseViewModel.LicenseState
@@ -15,37 +16,43 @@ struct MetricsContent: View {
     @State private var isModelStatsPanelPresented = false
 
     var body: some View {
-        Group {
-            if totalCount == 0 && !isLoadingMetrics {
-                emptyStateView
-            } else if isLoadingMetrics {
-                ProgressView("Loading metrics...")
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                GeometryReader { geometry in
-                    ScrollView {
-                        VStack(spacing: 24) {
-                            heroSection
-                            metricsSection
-                            #if !LOCAL_BUILD
-                            HStack(alignment: .top, spacing: 18) {
-                                HelpAndResourcesSection()
-                                DashboardPromotionsSection(licenseState: licenseState)
-                            }
-                            #endif
+        ZStack {
+            DreamersAtmosphere()
+                .ignoresSafeArea()
 
-                            Spacer(minLength: 20)
+            Group {
+                if totalCount == 0 && !isLoadingMetrics {
+                    emptyStateView
+                } else if isLoadingMetrics {
+                    loadingStateView
+                } else {
+                    GeometryReader { geometry in
+                        ScrollView {
+                            VStack(alignment: .leading, spacing: 20) {
+                                heroSection
+                                metricsSection
+                                studioNoteSection
 
-                            HStack {
-                                Spacer()
-                                footerActionsView
+                                #if !LOCAL_BUILD
+                                HStack(alignment: .top, spacing: 18) {
+                                    HelpAndResourcesSection()
+                                    DashboardPromotionsSection(licenseState: licenseState)
+                                }
+                                #endif
+
+                                Spacer(minLength: 16)
+
+                                HStack(alignment: .center) {
+                                    DreamersFooterMark()
+                                    Spacer()
+                                    footerActionsView
+                                }
                             }
+                            .frame(minHeight: geometry.size.height - 56, alignment: .top)
+                            .padding(.vertical, 28)
+                            .padding(.horizontal, 32)
                         }
-                        .frame(minHeight: geometry.size.height - 56)
-                        .padding(.vertical, 28)
-                        .padding(.horizontal, 32)
                     }
-                    .background(Color(.windowBackgroundColor))
                 }
             }
         }
@@ -77,11 +84,13 @@ struct MetricsContent: View {
                 }
                 .frame(width: 400)
                 .frame(maxHeight: .infinity)
-                .background(Color(NSColor.windowBackgroundColor))
+                .background(DreamersTheme.ColorToken.midnightNavy)
                 .overlay(alignment: .leading) {
-                    Rectangle().fill(Color(NSColor.separatorColor)).frame(width: 1)
+                    Rectangle()
+                        .fill(DreamersTheme.prismGradient)
+                        .frame(width: 1)
                 }
-                .shadow(color: .black.opacity(0.08), radius: 8, x: -2, y: 0)
+                .shadow(color: DreamersTheme.ColorToken.softInk.opacity(0.32), radius: 18, x: -4, y: 0)
                 .ignoresSafeArea()
                 .transition(.move(edge: .trailing))
             }
@@ -148,109 +157,157 @@ struct MetricsContent: View {
     }
 
     private var emptyStateView: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "waveform")
-                .font(.system(size: 56, weight: .semibold))
-                .foregroundColor(.secondary)
-            Text("No Recorder Sessions Yet")
-                .font(.title3.weight(.semibold))
-            Text("Start your first recording to unlock value insights.")
-                .foregroundColor(.secondary)
+        ChromePanel {
+            VStack(spacing: 18) {
+                Image(systemName: "waveform")
+                    .font(.system(size: 42, weight: .semibold))
+                    .foregroundStyle(DreamersTheme.ColorToken.auroraCyan)
+
+                DreamersSectionHeader(
+                    label: "Studio Metrics",
+                    title: "No Recorder Sessions Yet",
+                    subtitle: "Start your first recording to unlock DREAMScribe value insights."
+                )
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: 420)
+            }
+            .padding(32)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(.windowBackgroundColor))
+        .padding(32)
+    }
+
+    private var loadingStateView: some View {
+        ChromePanel {
+            HStack(spacing: 12) {
+                ProgressView()
+                    .controlSize(.small)
+                    .tint(DreamersTheme.accentText(for: colorScheme))
+                Text("Loading metrics...")
+                    .font(.system(size: 13, weight: .medium))
+            }
+            .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
+            .padding(.horizontal, 18)
+            .padding(.vertical, 14)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
     // MARK: - Sections
     
     private var heroSection: some View {
-        VStack(spacing: 14) {
-            Image("DreamersWordmark")
-                .resizable()
-                .scaledToFit()
-                .frame(maxHeight: 52)
-                .padding(.top, 4)
-                .accessibilityLabel("Dreamers")
+        ChromePanel {
+            VStack(alignment: .leading, spacing: 18) {
+                HStack(alignment: .top, spacing: 18) {
+                    DREAMScribeLockup(scale: .hero, includeSubline: true)
+                        .frame(maxWidth: 400, alignment: .leading)
 
-            HStack {
-                Spacer(minLength: 0)
+                    Spacer(minLength: 20)
 
-                (Text("You have saved ")
-                    .fontWeight(.bold)
-                    .foregroundColor(.white.opacity(0.85))
-                 +
-                 Text(formattedTimeSaved)
-                    .fontWeight(.black)
-                    .font(.system(size: 36, design: .rounded))
-                    .foregroundStyle(.white)
-                 +
-                 Text(" with DreamScribe")
-                    .fontWeight(.bold)
-                    .foregroundColor(.white.opacity(0.85))
-                )
-                .font(.system(size: 30))
-                .multilineTextAlignment(.center)
-                
-                Spacer(minLength: 0)
+                    VStack(alignment: .trailing, spacing: 3) {
+                        Text("CREATOR STUDIO")
+                            .font(.system(size: 11, weight: .medium, design: .monospaced))
+                            .tracking(1.8)
+                            .foregroundStyle(DreamersTheme.labelText(for: colorScheme))
+                            .lineLimit(1)
+                        Text("\(totalCount) \(totalCount == 1 ? "session" : "sessions")")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
+                            .lineLimit(1)
+                    }
+                }
+
+                Rectangle()
+                    .fill(DreamersTheme.prismGradient)
+                    .frame(height: 1)
+                    .opacity(0.72)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Time saved")
+                        .font(.system(size: 12, weight: .medium, design: .monospaced))
+                        .tracking(1.5)
+                        .foregroundStyle(DreamersTheme.tertiaryText(for: colorScheme))
+
+                    Text(formattedTimeSaved)
+                        .font(.system(size: 42, weight: .black, design: .rounded))
+                        .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.6)
+
+                    Text(heroSubtitle)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
-            .lineLimit(1)
-            .minimumScaleFactor(0.5)
-            
-            Text(heroSubtitle)
-                .font(.system(size: 15, weight: .medium))
-                .foregroundColor(.white.opacity(0.85))
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: .infinity)
-            
+            .padding(22)
         }
-        .padding(28)
         .frame(maxWidth: .infinity)
-        .background(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(heroGradient)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .strokeBorder(Color.white.opacity(0.1), lineWidth: 1)
-        )
-        .shadow(color: Color.black.opacity(0.08), radius: 30, x: 0, y: 16)
     }
     
     private var metricsSection: some View {
-        LazyVGrid(columns: [GridItem(.adaptive(minimum: 240), spacing: 16)], spacing: 16) {
-            MetricCard(
-                icon: "mic.fill",
-                title: "Sessions Recorded",
-                value: "\(totalCount)",
-                detail: "DreamScribe sessions completed",
-                color: .purple
+        VStack(alignment: .leading, spacing: 12) {
+            DreamersSectionHeader(
+                label: "Session Intelligence",
+                title: "Dashboard",
+                subtitle: "Compact studio metrics calculated from local recorder sessions."
             )
 
-            MetricCard(
-                icon: "text.alignleft",
-                title: "Words Dictated",
-                value: Formatters.formattedNumber(totalWords),
-                detail: "words generated",
-                color: Color(nsColor: .controlAccentColor)
-            )
-            
-            MetricCard(
-                icon: "speedometer",
-                title: "Words Per Minute",
-                value: averageWordsPerMinute > 0
-                    ? String(format: "%.1f", averageWordsPerMinute)
-                    : "–",
-                detail: "DreamScribe vs. typing by hand",
-                color: .yellow
-            )
-            
-            MetricCard(
-                icon: "keyboard.fill",
-                title: "Keystrokes Saved",
-                value: Formatters.formattedNumber(totalKeystrokesSaved),
-                detail: "fewer keystrokes",
-                color: .orange
-            )
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 220), spacing: 14)], spacing: 14) {
+                MetricCard(
+                    icon: "mic.fill",
+                    title: "Sessions Recorded",
+                    value: "\(totalCount)",
+                    detail: "DREAMScribe sessions completed",
+                    color: DreamersTheme.ColorToken.violetEdge
+                )
+
+                MetricCard(
+                    icon: "text.alignleft",
+                    title: "Words Dictated",
+                    value: Formatters.formattedNumber(totalWords),
+                    detail: "words generated",
+                    color: DreamersTheme.ColorToken.auroraCyan
+                )
+
+                MetricCard(
+                    icon: "speedometer",
+                    title: "Words Per Minute",
+                    value: averageWordsPerMinute > 0
+                        ? String(format: "%.1f", averageWordsPerMinute)
+                        : "–",
+                    detail: "DREAMScribe vs. typing by hand",
+                    color: DreamersTheme.ColorToken.lemonFlare
+                )
+
+                MetricCard(
+                    icon: "keyboard.fill",
+                    title: "Keystrokes Saved",
+                    value: Formatters.formattedNumber(totalKeystrokesSaved),
+                    detail: "fewer keystrokes",
+                    color: DreamersTheme.ColorToken.blushPink
+                )
+            }
+        }
+    }
+
+    private var studioNoteSection: some View {
+        ChromePanel {
+            HStack(alignment: .top, spacing: 16) {
+                Image(systemName: "waveform.path.ecg")
+                    .font(.system(size: 24, weight: .semibold))
+                    .foregroundStyle(DreamersTheme.prismGradient)
+                    .frame(width: 34, height: 34)
+
+                DreamersSectionHeader(
+                    label: "Studio Note",
+                    title: "Ready for the next take",
+                    subtitle: "Your dashboard is tuned for recording velocity today, with room for future Dreamers audio workflows."
+                )
+
+                Spacer(minLength: 12)
+            }
+            .padding(18)
         }
     }
 
@@ -263,12 +320,8 @@ struct MetricsContent: View {
                     Image(systemName: "gauge")
                     Text("Model Performance")
                 }
-                .font(.system(size: 13, weight: .medium))
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(Capsule().fill(.thinMaterial))
             }
-            .buttonStyle(.plain)
+            .buttonStyle(PrismButtonStyle())
             .help("View transcription and enhancement model performance")
             CopySystemInfoButton()
         }
@@ -281,26 +334,13 @@ struct MetricsContent: View {
     
     private var heroSubtitle: String {
         guard totalCount > 0 else {
-            return "Your DreamScribe journey starts with your first recording."
+            return "Your DREAMScribe journey starts with your first recording."
         }
 
         let wordsText = Formatters.formattedNumber(totalWords)
         let sessionText = totalCount == 1 ? "session" : "sessions"
 
         return "Dictated \(wordsText) words across \(totalCount) \(sessionText)."
-    }
-    
-    private var heroGradient: LinearGradient {
-        // Dreamers ink palette — dark backplate so the iridescent wordmark above pops.
-        LinearGradient(
-            gradient: Gradient(colors: [
-                Color(red: 0x1f / 255.0, green: 0x1c / 255.0, blue: 0x19 / 255.0),  // ink-3
-                Color(red: 0x14 / 255.0, green: 0x12 / 255.0, blue: 0x10 / 255.0),  // ink-2
-                Color(red: 0x0a / 255.0, green: 0x09 / 255.0, blue: 0x08 / 255.0),  // ink
-            ]),
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
     }
     
     // MARK: - Computed Metrics
@@ -367,12 +407,9 @@ private struct CopySystemInfoButton: View {
                     .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isCopied)
             }
             .font(.system(size: 13, weight: .medium))
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(Capsule().fill(.thinMaterial))
         }
-        .buttonStyle(.plain)
-        .scaleEffect(isCopied ? 1.1 : 1.0)
+        .buttonStyle(ChromeIconButtonStyle(isSelected: isCopied))
+        .scaleEffect(isCopied ? 1.04 : 1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isCopied)
     }
 

@@ -8,6 +8,120 @@ enum ActivePopoverState {
     case power
 }
 
+// MARK: - Recorder Chrome
+
+struct RecorderChromeSurface<S: Shape>: ViewModifier {
+    let shape: S
+    let isActive: Bool
+    let reduceMotion: Bool
+
+    @State private var pulse = false
+
+    func body(content: Content) -> some View {
+        content
+            .background(
+                shape
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                DreamersTheme.ColorToken.softInk,
+                                DreamersTheme.ColorToken.midnightNavy,
+                                DreamersTheme.ColorToken.deepDreamBlue.opacity(0.94)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+            )
+            .overlay {
+                shape
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                DreamersTheme.ColorToken.auroraCyan.opacity(isActive ? 0.22 : 0.10),
+                                .clear
+                            ],
+                            center: .topLeading,
+                            startRadius: 0,
+                            endRadius: 180
+                        )
+                    )
+                    .blendMode(.screen)
+            }
+            .overlay {
+                shape
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                .clear,
+                                DreamersTheme.ColorToken.starWhite.opacity(isActive ? 0.12 : 0.06),
+                                .clear
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .opacity(isActive && !reduceMotion ? (pulse ? 0.75 : 0.30) : 0.45)
+                    .blendMode(.screen)
+            }
+            .overlay {
+                shape
+                    .stroke(
+                        isActive ? DreamersTheme.selectedPanelStroke : DreamersTheme.panelStroke,
+                        lineWidth: isActive ? 1.15 : 0.85
+                    )
+            }
+            .shadow(color: DreamersTheme.ColorToken.auroraCyan.opacity(isActive ? 0.18 : 0.08), radius: isActive ? 18 : 10, x: 0, y: 6)
+            .onAppear { updatePulse(for: isActive) }
+            .onChange(of: isActive) { _, newValue in
+                updatePulse(for: newValue)
+            }
+            .onChange(of: reduceMotion) { _, _ in
+                updatePulse(for: isActive)
+            }
+    }
+
+    private func updatePulse(for active: Bool) {
+        guard active && !reduceMotion else {
+            pulse = false
+            return
+        }
+
+        withAnimation(.easeInOut(duration: 1.8).repeatForever(autoreverses: true)) {
+            pulse = true
+        }
+    }
+}
+
+struct RecorderPulseHalo: View {
+    let isActive: Bool
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var pulse = false
+
+    var body: some View {
+        Circle()
+            .stroke(DreamersTheme.ColorToken.auroraCyan.opacity(0.55), lineWidth: 0.8)
+            .frame(width: pulse ? 26 : 18, height: pulse ? 26 : 18)
+            .opacity(isActive && !reduceMotion ? (pulse ? 0 : 0.45) : 0)
+            .blur(radius: 0.2)
+            .animation(
+                isActive && !reduceMotion ? .easeOut(duration: 1.5).repeatForever(autoreverses: false) : .default,
+                value: pulse
+            )
+            .onAppear { pulse = isActive }
+            .onChange(of: isActive) { _, newValue in
+                pulse = newValue
+            }
+    }
+}
+
+extension View {
+    func recorderChromeSurface<S: Shape>(shape: S, isActive: Bool, reduceMotion: Bool) -> some View {
+        modifier(RecorderChromeSurface(shape: shape, isActive: isActive, reduceMotion: reduceMotion))
+    }
+}
+
 // MARK: - Icon Toggle Button
 
 struct RecorderToggleButton: View {
@@ -36,10 +150,30 @@ struct RecorderToggleButton: View {
                     Image(systemName: icon).font(.system(size: 13))
                 }
             }
-            .foregroundColor(disabled ? .white.opacity(0.3) : (isEnabled ? .white : .white.opacity(0.6)))
+            .foregroundStyle(iconForeground)
+            .frame(width: 20, height: 20)
+            .background(
+                Circle()
+                    .fill(isEnabled ? DreamersTheme.ColorToken.starWhite.opacity(0.12) : DreamersTheme.ColorToken.starWhite.opacity(0.05))
+            )
+            .overlay(
+                Circle()
+                    .stroke(isEnabled ? DreamersTheme.ColorToken.auroraCyan.opacity(0.38) : DreamersTheme.ColorToken.starWhite.opacity(0.12), lineWidth: 0.7)
+            )
+            .shadow(color: DreamersTheme.ColorToken.auroraCyan.opacity(isEnabled && !disabled ? 0.20 : 0), radius: 6, x: 0, y: 0)
         }
         .buttonStyle(PlainButtonStyle())
         .disabled(disabled)
+    }
+
+    private var iconForeground: some ShapeStyle {
+        if disabled {
+            return AnyShapeStyle(DreamersTheme.ColorToken.starWhite.opacity(0.28))
+        }
+        if isEnabled {
+            return AnyShapeStyle(DreamersTheme.chromeGradient)
+        }
+        return AnyShapeStyle(DreamersTheme.ColorToken.starWhite.opacity(0.62))
     }
 }
 
@@ -80,6 +214,7 @@ struct RecorderRecordButton: View {
 // MARK: - Processing Indicator
 
 struct ProcessingIndicator: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var rotation: Double = 0
     let color: Color
 
@@ -90,6 +225,7 @@ struct ProcessingIndicator: View {
             .frame(width: 14, height: 14)
             .rotationEffect(.degrees(rotation))
             .onAppear {
+                guard !reduceMotion else { return }
                 withAnimation(.linear(duration: 1).repeatForever(autoreverses: false)) {
                     rotation = 360
                 }
@@ -100,6 +236,8 @@ struct ProcessingIndicator: View {
 // MARK: - Progress Dot Animation
 
 struct ProgressAnimation: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     let color: Color
     let animationSpeed: Double
 
@@ -119,15 +257,33 @@ struct ProgressAnimation: View {
         HStack(spacing: dotSpacing) {
             ForEach(0..<dotCount, id: \.self) { index in
                 RoundedRectangle(cornerRadius: dotSize / 2)
-                    .fill(color.opacity(index <= currentDot ? 0.85 : 0.25))
+                    .fill(color.opacity(dotOpacity(for: index)))
                     .frame(width: dotSize, height: dotSize)
             }
         }
-        .onAppear { startAnimation() }
+        .onAppear {
+            guard !reduceMotion else { return }
+            startAnimation()
+        }
+        .onChange(of: reduceMotion) { _, newValue in
+            if newValue {
+                timer?.invalidate()
+                timer = nil
+            } else {
+                startAnimation()
+            }
+        }
         .onDisappear {
             timer?.invalidate()
             timer = nil
         }
+    }
+
+    private func dotOpacity(for index: Int) -> Double {
+        if reduceMotion {
+            return index == dotCount / 2 ? 0.85 : 0.34
+        }
+        return index <= currentDot ? 0.85 : 0.25
     }
 
     private func startAnimation() {
@@ -273,7 +429,7 @@ struct LiveTranscriptView: View {
             ScrollView(.vertical, showsIndicators: false) {
                 Text(text)
                     .font(.system(size: 12))
-                    .foregroundColor(.white.opacity(0.8))
+                    .foregroundStyle(DreamersTheme.ColorToken.starWhite.opacity(0.82))
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 6)
@@ -315,15 +471,15 @@ struct RecorderStatusDisplay: View {
     var body: some View {
         Group {
             if currentState == .enhancing {
-                ProcessingStatusDisplay(mode: .enhancing, color: .white).transition(.opacity)
+                ProcessingStatusDisplay(mode: .enhancing, color: DreamersTheme.ColorToken.blushPink).transition(.opacity)
             } else if currentState == .transcribing {
-                ProcessingStatusDisplay(mode: .transcribing, color: .white).transition(.opacity)
+                ProcessingStatusDisplay(mode: .transcribing, color: DreamersTheme.ColorToken.auroraCyan).transition(.opacity)
             } else if currentState == .recording {
-                AudioVisualizer(audioMeter: audioMeter, color: .white, isActive: true)
+                AudioVisualizer(audioMeter: audioMeter, color: DreamersTheme.ColorToken.auroraCyan, isActive: true)
                     .scaleEffect(y: menuBarHeight != nil ? min(1.0, (menuBarHeight! - 8) / 25) : 1.0, anchor: .center)
                     .transition(.opacity)
             } else {
-                StaticVisualizer(color: .white)
+                StaticVisualizer(color: DreamersTheme.ColorToken.starWhite)
                     .scaleEffect(y: menuBarHeight != nil ? min(1.0, (menuBarHeight! - 8) / 25) : 1.0, anchor: .center)
                     .transition(.opacity)
             }

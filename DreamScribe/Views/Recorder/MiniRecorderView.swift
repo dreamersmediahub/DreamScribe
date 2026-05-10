@@ -5,6 +5,7 @@ struct MiniRecorderView<S: RecorderStateProvider & ObservableObject>: View {
     @ObservedObject var recorder: Recorder
     @EnvironmentObject var windowManager: MiniWindowManager
     @EnvironmentObject private var enhancementService: AIEnhancementService
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @AppStorage("showLiveTextPreview") private var showLiveTextPreview = false
 
     @State private var activePopover: ActivePopoverState = .none
@@ -56,9 +57,22 @@ struct MiniRecorderView<S: RecorderStateProvider & ObservableObject>: View {
         VStack(spacing: 0) {
             if hasLiveTranscript {
                 LiveTranscriptView(text: stateProvider.partialTranscript)
-                Divider().background(Color.white.opacity(0.15))
+                Divider().background(DreamersTheme.ColorToken.starWhite.opacity(0.14))
             }
         }
+    }
+
+    private var isActiveSurface: Bool {
+        switch stateProvider.recordingState {
+        case .recording, .transcribing, .enhancing:
+            return true
+        default:
+            return false
+        }
+    }
+
+    private var surfaceShape: RoundedRectangle {
+        RoundedRectangle(cornerRadius: hasLiveTranscript ? expandedCornerRadius : compactCornerRadius, style: .continuous)
     }
 
     var body: some View {
@@ -68,8 +82,12 @@ struct MiniRecorderView<S: RecorderStateProvider & ObservableObject>: View {
                 controlBar
             }
             .frame(width: hasLiveTranscript ? expandedWidth : compactWidth)
-            .background(Color.black)
-            .clipShape(RoundedRectangle(cornerRadius: hasLiveTranscript ? expandedCornerRadius : compactCornerRadius, style: .continuous))
+            .overlay(alignment: .center) {
+                RecorderPulseHalo(isActive: isActiveSurface)
+                    .allowsHitTesting(false)
+            }
+            .recorderChromeSurface(shape: surfaceShape, isActive: isActiveSurface, reduceMotion: reduceMotion)
+            .clipShape(surfaceShape)
             .animation(.easeInOut(duration: 0.3), value: hasLiveTranscript)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
         }
