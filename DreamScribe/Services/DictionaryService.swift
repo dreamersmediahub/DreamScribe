@@ -1,6 +1,29 @@
 import SwiftData
 
 enum DictionaryService {
+    static func normalizedVocabularyWord(_ word: String) -> String {
+        word.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+    }
+
+    static func replacementTokens(from original: String) -> [String] {
+        original
+            .split(separator: ",")
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
+            .filter { !$0.isEmpty }
+    }
+
+    static func vocabularyWordExists(_ word: String, in existing: [VocabularyWord]) -> Bool {
+        let normalizedWord = normalizedVocabularyWord(word)
+        return existing.contains { normalizedVocabularyWord($0.word) == normalizedWord }
+    }
+
+    static func replacementExists(original: String, in existing: [WordReplacement]) -> Bool {
+        let candidateTokens = replacementTokens(from: original)
+        guard !candidateTokens.isEmpty else { return true }
+
+        let existingTokens = Set(existing.flatMap { replacementTokens(from: $0.originalText) })
+        return candidateTokens.contains(where: existingTokens.contains)
+    }
 
     // MARK: - Vocabulary
 
@@ -20,16 +43,16 @@ enum DictionaryService {
         guard !parts.isEmpty else { return nil }
 
         if parts.count == 1, let word = parts.first {
-            if existing.contains(where: { $0.word.lowercased() == word.lowercased() }) {
+            if vocabularyWordExists(word, in: existing) {
                 return "'\(word)' is already in the vocabulary"
             }
             return insertVocabularyWord(word, context: context)
         }
 
-        var addedWords = Set(existing.map { $0.word.lowercased() })
+        var addedWords = Set(existing.map { normalizedVocabularyWord($0.word) })
         var errors = [String]()
         for word in parts {
-            let lower = word.lowercased()
+            let lower = normalizedVocabularyWord(word)
             if !addedWords.contains(lower) {
                 if let error = insertVocabularyWord(word, context: context) {
                     errors.append(error)
@@ -71,17 +94,8 @@ enum DictionaryService {
 
         guard !tokens.isEmpty, !replacement.isEmpty else { return nil }
 
-        for existingEntry in existing {
-            let existingTokens = existingEntry.originalText
-                .split(separator: ",")
-                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
-                .filter { !$0.isEmpty }
-
-            for token in tokens {
-                if existingTokens.contains(token.lowercased()) {
-                    return "'\(token)' already exists in word replacements"
-                }
-            }
+        if replacementExists(original: original, in: existing) {
+            return "'\(tokens.first ?? original)' already exists in word replacements"
         }
 
         let entry = WordReplacement(originalText: original, replacementText: replacement)

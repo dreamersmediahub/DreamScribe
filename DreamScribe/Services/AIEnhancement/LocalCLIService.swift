@@ -1,30 +1,47 @@
 import Foundation
 
 enum LocalCLITemplate: String, CaseIterable, Identifiable {
-    case pi
-    case claude
     case codex
+    case claude
+    case gemini
+    case custom
+    case pi
 
     var id: String { rawValue }
 
     var displayName: String {
         switch self {
-        case .pi: return "Pi"
-        case .claude: return "Claude"
         case .codex: return "Codex"
+        case .claude: return "Claude"
+        case .gemini: return "Gemini"
+        case .custom: return "Custom"
+        case .pi: return "Pi"
         }
+    }
+
+    static var allCases: [LocalCLITemplate] {
+        [.codex, .claude, .gemini, .custom]
     }
 
     var commandTemplate: String {
         switch self {
-        case .pi:
-            return "pi -ne -ns -p --no-tools --system-prompt \"$VOICEINK_SYSTEM_PROMPT\" \"$VOICEINK_USER_PROMPT\""
-        case .claude:
-            return "claude -p \"$VOICEINK_FULL_PROMPT\""
         case .codex:
-            return "TMPFILE=$(mktemp) && codex exec --skip-git-repo-check --output-last-message \"$TMPFILE\" \"$VOICEINK_FULL_PROMPT\" > /dev/null 2>&1 && cat \"$TMPFILE\" && rm \"$TMPFILE\""
+            return "TMPFILE=$(mktemp) && codex exec --skip-git-repo-check --output-last-message \"$TMPFILE\" \"$DREAMSCRIBE_FULL_PROMPT\" > /dev/null && cat \"$TMPFILE\" && rm \"$TMPFILE\""
+        case .claude:
+            return "claude -p \"$DREAMSCRIBE_FULL_PROMPT\""
+        case .gemini:
+            return "gemini -p \"$DREAMSCRIBE_FULL_PROMPT\""
+        case .custom:
+            return ""
+        case .pi:
+            return "pi -ne -ns -p --no-tools --system-prompt \"$DREAMSCRIBE_SYSTEM_PROMPT\" \"$DREAMSCRIBE_USER_PROMPT\""
         }
     }
+}
+
+enum LocalCLITestResult: Equatable {
+    case success(output: String)
+    case failure(error: String)
 }
 
 final class LocalCLIService {
@@ -64,7 +81,7 @@ final class LocalCLIService {
 
     init() {
         let savedTemplateRaw = UserDefaults.standard.string(forKey: Self.selectedTemplateKey) ?? ""
-        selectedTemplate = LocalCLITemplate(rawValue: savedTemplateRaw) ?? .pi
+        selectedTemplate = LocalCLITemplate(rawValue: savedTemplateRaw) ?? .codex
 
         commandTemplate = UserDefaults.standard.string(forKey: Self.commandTemplateKey) ?? ""
 
@@ -90,6 +107,35 @@ final class LocalCLIService {
             fullPrompt: fullPrompt,
             timeout: timeoutSeconds
         )
+    }
+
+    func testConfiguration() async -> LocalCLITestResult {
+        guard isConfigured else {
+            return .failure(error: LocalCLIError.commandNotConfigured.localizedDescription)
+        }
+
+        let expectedOutput = "DreamScribe CLI OK"
+        let systemPrompt = "You are testing a command-line integration. Respond with exactly \(expectedOutput) and nothing else."
+        let userPrompt = "Return exactly \(expectedOutput)."
+        let fullPrompt = Self.makeFullPrompt(systemPrompt: systemPrompt, userPrompt: userPrompt)
+
+        do {
+            let output = try await executeCommand(
+                commandTemplate: commandTemplate,
+                systemPrompt: systemPrompt,
+                userPrompt: userPrompt,
+                fullPrompt: fullPrompt,
+                timeout: timeoutSeconds
+            )
+
+            guard Self.normalizedTestOutput(output) == Self.normalizedTestOutput(expectedOutput) else {
+                return .failure(error: "Expected a response matching \"\(expectedOutput)\" but received \"\(output)\".")
+            }
+
+            return .success(output: output)
+        } catch {
+            return .failure(error: error.localizedDescription)
+        }
     }
 
     static func makeFullPrompt(systemPrompt: String, userPrompt: String) -> String {
@@ -119,6 +165,9 @@ final class LocalCLIService {
 
                 var environment = ProcessInfo.processInfo.environment
                 environment["PATH"] = Self.preferredPATH(fallback: environment["PATH"])
+                environment["DREAMSCRIBE_SYSTEM_PROMPT"] = systemPrompt
+                environment["DREAMSCRIBE_USER_PROMPT"] = userPrompt
+                environment["DREAMSCRIBE_FULL_PROMPT"] = fullPrompt
                 environment["VOICEINK_SYSTEM_PROMPT"] = systemPrompt
                 environment["VOICEINK_USER_PROMPT"] = userPrompt
                 environment["VOICEINK_FULL_PROMPT"] = fullPrompt
@@ -255,6 +304,14 @@ final class LocalCLIService {
 
     private static func cleanOutput(_ value: String) -> String {
         value.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private static func normalizedTestOutput(_ value: String) -> String {
+        value
+            .lowercased()
+            .replacingOccurrences(of: #"[^a-z0-9\s]"#, with: "", options: .regularExpression)
+            .replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
 

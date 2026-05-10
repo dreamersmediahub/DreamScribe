@@ -99,6 +99,10 @@ struct VoiceInkApp: App {
         container = resolvedContainer
         containerInitializationFailed = initializationFailed
 
+        if !initializationFailed {
+            _ = SuperwhisperImportService.shared.importIfNeeded(context: resolvedContainer.mainContext)
+        }
+
         // Initialize services with proper sharing of instances
         let aiService = AIService()
         _aiService = StateObject(wrappedValue: aiService)

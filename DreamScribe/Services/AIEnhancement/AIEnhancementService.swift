@@ -446,7 +446,7 @@ class AIEnhancementService: ObservableObject {
                     icon: template.icon,
                     description: template.description,
                     isPredefined: true,
-                    triggerWords: updatedPrompt.triggerWords,
+                    triggerWords: template.triggerWords,
                     useSystemInstructions: template.useSystemInstructions
                 )
                 customPrompts[existingIndex] = updatedPrompt
