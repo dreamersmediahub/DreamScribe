@@ -157,7 +157,7 @@ struct ContentView: View {
                     .padding(.bottom, 14)
 
                 Rectangle()
-                    .fill(DreamersTheme.ColorToken.starWhite.opacity(0.14))
+                    .fill(DreamersTheme.secondaryText(for: colorScheme).opacity(0.18))
                     .frame(height: 1)
                     .padding(.horizontal, 14)
 
@@ -181,7 +181,7 @@ struct ContentView: View {
                 .background(Color.clear)
 
                 Rectangle()
-                    .fill(DreamersTheme.ColorToken.starWhite.opacity(0.12))
+                    .fill(DreamersTheme.secondaryText(for: colorScheme).opacity(0.16))
                     .frame(height: 1)
                     .padding(.horizontal, 14)
 
@@ -248,6 +248,7 @@ struct ContentView: View {
 }
 
 private struct SidebarItemView: View {
+    @Environment(\.colorScheme) private var colorScheme
     let viewType: ViewType
     let isSelected: Bool
 
@@ -256,11 +257,11 @@ private struct SidebarItemView: View {
             Image(systemName: viewType.icon)
                 .font(.system(size: 15, weight: .semibold))
                 .frame(width: 20, height: 20)
-                .foregroundStyle(isSelected ? DreamersTheme.ColorToken.auroraCyan : DreamersTheme.ColorToken.starWhite.opacity(0.72))
+                .foregroundStyle(isSelected ? DreamersTheme.accentText(for: colorScheme) : DreamersTheme.secondaryText(for: colorScheme))
 
             Text(viewType.rawValue)
                 .font(.system(size: 13, weight: isSelected ? .semibold : .medium))
-                .foregroundStyle(isSelected ? DreamersTheme.ColorToken.starWhite : DreamersTheme.ColorToken.starWhite.opacity(0.82))
+                .foregroundStyle(isSelected ? DreamersTheme.primaryText(for: colorScheme) : DreamersTheme.secondaryText(for: colorScheme))
                 .lineLimit(1)
 
             Spacer()

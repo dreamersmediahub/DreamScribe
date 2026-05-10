@@ -117,6 +117,7 @@ struct DictionarySettingsView: View {
 }
 
 struct SectionCard: View {
+    @Environment(\.colorScheme) private var colorScheme
     let section: DictionarySettingsView.DictionarySection
     let isSelected: Bool
     let action: () -> Void
@@ -127,16 +128,16 @@ struct SectionCard: View {
                 Image(systemName: section.icon)
                     .font(.system(size: 28))
                     .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(isSelected ? DreamersTheme.ColorToken.auroraCyan : DreamersTheme.ColorToken.starWhite.opacity(0.70))
+                    .foregroundStyle(isSelected ? DreamersTheme.accentText(for: colorScheme) : DreamersTheme.secondaryText(for: colorScheme))
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(section.rawValue)
                         .font(.headline)
-                        .foregroundStyle(DreamersTheme.ColorToken.starWhite)
+                        .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
                     
                     Text(section.description)
                         .font(.subheadline)
-                        .foregroundStyle(DreamersTheme.ColorToken.starWhite.opacity(0.70))
+                        .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }

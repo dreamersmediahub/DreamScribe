@@ -25,6 +25,7 @@ struct VoiceInkApp: App {
     @StateObject private var activeWindowService = ActiveWindowService.shared
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @AppStorage("enableAnnouncements") private var enableAnnouncements = true
+    @AppStorage("appearanceMode") private var appearanceModeRaw = AppearanceMode.system.rawValue
     @State private var showMenuBarIcon = true
     @State private var splashFinished = false
 
@@ -406,7 +407,7 @@ struct VoiceInkApp: App {
                     .zIndex(100)
             }
             }
-            .preferredColorScheme(.dark)
+            .preferredColorScheme((AppearanceMode(rawValue: appearanceModeRaw) ?? .system).colorScheme)
             .tint(DreamersTheme.ColorToken.auroraCyan)
         }
         .windowStyle(.hiddenTitleBar)

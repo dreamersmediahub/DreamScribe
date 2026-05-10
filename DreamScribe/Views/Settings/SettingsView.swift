@@ -6,6 +6,7 @@ import AVFoundation
 
 struct SettingsView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject private var updaterViewModel: UpdaterViewModel
     @EnvironmentObject private var menuBarManager: MenuBarManager
     @EnvironmentObject private var hotkeyManager: HotkeyManager
@@ -22,6 +23,7 @@ struct SettingsView: View {
     @AppStorage("restoreClipboardAfterPaste") private var restoreClipboardAfterPaste = true
     @AppStorage("clipboardRestoreDelay") private var clipboardRestoreDelay = 2.0
     @AppStorage("useAppleScriptPaste") private var useAppleScriptPaste = false
+    @AppStorage("appearanceMode") private var appearanceModeRaw = AppearanceMode.system.rawValue
     @State private var showResetOnboardingAlert = false
     @State private var currentShortcut = KeyboardShortcuts.getShortcut(for: .toggleMiniRecorder)
     @State private var isCustomCancelEnabled = KeyboardShortcuts.getShortcut(for: .cancelRecorder) != nil
@@ -45,8 +47,7 @@ struct SettingsView: View {
                         }
                         hotkeyPicker(binding: $hotkeyManager.selectedHotkey1)
                         if hotkeyManager.selectedHotkey1 == .custom {
-                            KeyboardShortcuts.Recorder(for: .toggleMiniRecorder)
-                                .controlSize(.small)
+                            shortcutRecorder(for: .toggleMiniRecorder)
                         }
                     }
                 }
@@ -58,8 +59,7 @@ struct SettingsView: View {
                             hotkeyModePicker(binding: $hotkeyManager.hotkeyMode2)
                             hotkeyPicker(binding: $hotkeyManager.selectedHotkey2)
                             if hotkeyManager.selectedHotkey2 == .custom {
-                                KeyboardShortcuts.Recorder(for: .toggleMiniRecorder2)
-                                    .controlSize(.small)
+                                shortcutRecorder(for: .toggleMiniRecorder2)
                             }
                             Button {
                                 withAnimation { hotkeyManager.selectedHotkey2 = .none }
@@ -84,18 +84,15 @@ struct SettingsView: View {
             // MARK: - Additional Shortcuts
             Section("Additional Shortcuts") {
                 LabeledContent("Paste Last Transcription (Original)") {
-                    KeyboardShortcuts.Recorder(for: .pasteLastTranscription)
-                        .controlSize(.small)
+                    shortcutRecorder(for: .pasteLastTranscription)
                 }
 
                 LabeledContent("Paste Last Transcription (Enhanced)") {
-                    KeyboardShortcuts.Recorder(for: .pasteLastEnhancement)
-                        .controlSize(.small)
+                    shortcutRecorder(for: .pasteLastEnhancement)
                 }
 
                 LabeledContent("Retry Last Transcription") {
-                    KeyboardShortcuts.Recorder(for: .retryLastTranscription)
-                        .controlSize(.small)
+                    shortcutRecorder(for: .retryLastTranscription)
                 }
 
                 // Custom Cancel - hierarchical
@@ -105,8 +102,7 @@ struct SettingsView: View {
                     label: "Custom Cancel Shortcut"
                 ) {
                     LabeledContent("Shortcut") {
-                        KeyboardShortcuts.Recorder(for: .cancelRecorder)
-                            .controlSize(.small)
+                        shortcutRecorder(for: .cancelRecorder)
                     }
                 }
                 .onChange(of: isCustomCancelEnabled) { _, newValue in
@@ -129,7 +125,7 @@ struct SettingsView: View {
                                 formatter.minimum = 0
                                 return formatter
                             }())
-                                .textFieldStyle(.roundedBorder)
+                                .dreamersInputChrome()
                                 .frame(width: 60)
                             Text("ms")
                                 .foregroundColor(.secondary)
@@ -199,6 +195,13 @@ struct SettingsView: View {
 
             // MARK: - Interface
             Section("Interface") {
+                Picker("Appearance", selection: $appearanceModeRaw) {
+                    ForEach(AppearanceMode.allCases) { mode in
+                        Text(mode.displayName).tag(mode.rawValue)
+                    }
+                }
+                .pickerStyle(.segmented)
+
                 Picker("Recorder Style", selection: $recorderUIManager.recorderType) {
                     Text("Notch").tag("notch")
                     Text("Mini").tag("mini")
@@ -297,8 +300,8 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .scrollContentBackground(.hidden)
-        .background(Color(NSColor.controlBackgroundColor))
+        .dreamersFormChrome()
+        .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
         .alert("Reset Onboarding", isPresented: $showResetOnboardingAlert) {
             Button("Cancel", role: .cancel) { }
             Button("Reset", role: .destructive) {
@@ -331,6 +334,23 @@ struct SettingsView: View {
         }
         .labelsHidden()
         .fixedSize()
+    }
+
+    private func shortcutRecorder(for name: KeyboardShortcuts.Name) -> some View {
+        KeyboardShortcuts.Recorder(for: name)
+            .controlSize(.small)
+            .colorScheme(.light)
+            .tint(DreamersTheme.accentText(for: colorScheme))
+            .padding(.horizontal, 4)
+            .padding(.vertical, 2)
+            .background(
+                Capsule()
+                    .fill(DreamersTheme.selectedPanelFill(for: colorScheme))
+            )
+            .overlay(
+                Capsule()
+                    .stroke(DreamersTheme.panelStroke(for: colorScheme), lineWidth: 0.8)
+            )
     }
 }
 

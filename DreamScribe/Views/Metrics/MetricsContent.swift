@@ -3,6 +3,7 @@ import SwiftData
 import os
 
 struct MetricsContent: View {
+    @Environment(\.colorScheme) private var colorScheme
     private let logger = Logger(subsystem: "co.dreamersmedia.dreamscribe", category: "MetricsContent")
     let modelContext: ModelContext
     let licenseState: LicenseViewModel.LicenseState
@@ -181,10 +182,11 @@ struct MetricsContent: View {
             HStack(spacing: 12) {
                 ProgressView()
                     .controlSize(.small)
+                    .tint(DreamersTheme.accentText(for: colorScheme))
                 Text("Loading metrics...")
                     .font(.system(size: 13, weight: .medium))
             }
-            .foregroundStyle(DreamersTheme.ColorToken.starWhite.opacity(0.82))
+            .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
             .padding(.horizontal, 18)
             .padding(.vertical, 14)
         }
@@ -206,11 +208,11 @@ struct MetricsContent: View {
                         Text("CREATOR STUDIO")
                             .font(.system(size: 11, weight: .medium, design: .monospaced))
                             .tracking(1.8)
-                            .foregroundStyle(DreamersTheme.ColorToken.auroraCyan.opacity(0.84))
+                            .foregroundStyle(DreamersTheme.labelText(for: colorScheme))
                             .lineLimit(1)
                         Text("\(totalCount) \(totalCount == 1 ? "session" : "sessions")")
                             .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(DreamersTheme.ColorToken.starWhite.opacity(0.82))
+                            .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                             .lineLimit(1)
                     }
                 }
@@ -224,17 +226,17 @@ struct MetricsContent: View {
                     Text("Time saved")
                         .font(.system(size: 12, weight: .medium, design: .monospaced))
                         .tracking(1.5)
-                        .foregroundStyle(DreamersTheme.ColorToken.skyVeil.opacity(0.82))
+                        .foregroundStyle(DreamersTheme.tertiaryText(for: colorScheme))
 
                     Text(formattedTimeSaved)
                         .font(.system(size: 42, weight: .black, design: .rounded))
-                        .foregroundStyle(DreamersTheme.ColorToken.starWhite)
+                        .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
                         .lineLimit(1)
                         .minimumScaleFactor(0.6)
 
                     Text(heroSubtitle)
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(DreamersTheme.ColorToken.starWhite.opacity(0.76))
+                        .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }

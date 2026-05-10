@@ -4,6 +4,7 @@ import UniformTypeIdentifiers
 
 struct AudioTranscribeView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject private var engine: DreamScribeEngine
     @EnvironmentObject private var enhancementService: AIEnhancementService
     @StateObject private var transcriptionManager = AudioTranscriptionManager.shared
@@ -55,14 +56,14 @@ struct AudioTranscribeView: View {
                 VStack(spacing: 14) {
                     Image(systemName: "arrow.down.doc")
                         .font(.system(size: 32))
-                        .foregroundStyle(isDropTargeted ? DreamersTheme.ColorToken.auroraCyan : DreamersTheme.ColorToken.starWhite.opacity(0.72))
+                        .foregroundStyle(isDropTargeted ? DreamersTheme.accentText(for: colorScheme) : DreamersTheme.secondaryText(for: colorScheme))
 
                     Text("Drop audio or video files here")
                         .font(.headline)
-                        .foregroundStyle(DreamersTheme.ColorToken.starWhite)
+                        .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
 
                     Text("or")
-                        .foregroundStyle(DreamersTheme.ColorToken.starWhite.opacity(0.68))
+                        .foregroundStyle(DreamersTheme.tertiaryText(for: colorScheme))
 
                     Button("Choose Files") {
                         selectFiles()
@@ -74,7 +75,7 @@ struct AudioTranscribeView: View {
             .overlay(
                 RoundedRectangle(cornerRadius: DreamersTheme.Radius.panel, style: .continuous)
                     .strokeBorder(
-                        isDropTargeted ? DreamersTheme.ColorToken.auroraCyan.opacity(0.85) : DreamersTheme.ColorToken.starWhite.opacity(0.34),
+                        isDropTargeted ? DreamersTheme.accentText(for: colorScheme).opacity(0.85) : DreamersTheme.secondaryText(for: colorScheme).opacity(0.34),
                         style: StrokeStyle(lineWidth: 1.4, dash: [8])
                     )
             )
@@ -83,7 +84,7 @@ struct AudioTranscribeView: View {
 
             Text("Supports WAV, MP3, M4A, AIFF, MP4, MOV, AAC, FLAC, CAF, AMR, OGG, OPUS, 3GP")
                 .font(.caption)
-                .foregroundStyle(DreamersTheme.ColorToken.starWhite.opacity(0.68))
+                .foregroundStyle(DreamersTheme.tertiaryText(for: colorScheme))
                 .padding(.top, 12)
 
             Spacer()
@@ -97,7 +98,7 @@ struct AudioTranscribeView: View {
         VStack(spacing: 0) {
             topBar
             Divider()
-                .overlay(DreamersTheme.ColorToken.starWhite.opacity(0.18))
+                .overlay(DreamersTheme.panelStroke(for: colorScheme))
 
             Form {
                 ForEach(transcriptionManager.queue) { item in
@@ -127,11 +128,11 @@ struct AudioTranscribeView: View {
                 }
             }
             .formStyle(.grouped)
-            .scrollContentBackground(.hidden)
+            .dreamersFormChrome()
             .safeAreaInset(edge: .bottom) {
                 Text("Drop files anywhere to add more")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 8)
             }
@@ -144,7 +145,7 @@ struct AudioTranscribeView: View {
         HStack(spacing: 10) {
             Text("\(transcriptionManager.queue.count) file\(transcriptionManager.queue.count == 1 ? "" : "s")")
                 .font(.subheadline)
-                .foregroundStyle(DreamersTheme.ColorToken.starWhite.opacity(0.74))
+                .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
 
             Button {
                 selectFiles()
@@ -173,12 +174,12 @@ struct AudioTranscribeView: View {
                         Text("Cancel")
                             .font(.system(size: 12, weight: .medium))
                     }
-                    .foregroundColor(.red.opacity(0.9))
+                    .foregroundStyle(DreamersTheme.danger(for: colorScheme))
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
                     .background(
                         RoundedRectangle(cornerRadius: DreamersTheme.Radius.control, style: .continuous)
-                            .fill(Color.red.opacity(0.12))
+                            .fill(DreamersTheme.danger(for: colorScheme).opacity(0.14))
                     )
                 }
                 .buttonStyle(.plain)
@@ -215,7 +216,7 @@ struct AudioTranscribeView: View {
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 10)
-        .background(DreamersTheme.ColorToken.softInk.opacity(0.10))
+        .background(DreamersTheme.panelFill(for: colorScheme))
     }
 
     private var enhancementControls: some View {
@@ -223,7 +224,8 @@ struct AudioTranscribeView: View {
             Toggle("AI Enhancement", isOn: $isEnhancementEnabled)
                 .toggleStyle(.switch)
                 .controlSize(.small)
-                .foregroundStyle(DreamersTheme.ColorToken.starWhite.opacity(0.84))
+                .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
+                .tint(DreamersTheme.accentText(for: colorScheme))
                 .onChange(of: isEnhancementEnabled) { _, newValue in
                     enhancementService.isEnhancementEnabled = newValue
                 }
@@ -248,6 +250,7 @@ struct AudioTranscribeView: View {
                 }
                 .labelsHidden()
                 .fixedSize()
+                .tint(DreamersTheme.accentText(for: colorScheme))
             }
         }
         .onAppear {

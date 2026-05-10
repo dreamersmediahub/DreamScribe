@@ -2,6 +2,7 @@ import SwiftUI
 import LLMkit
 
 struct APIKeyManagementView: View {
+    @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject private var aiService: AIService
     @State private var apiKey: String = ""
     @State private var showAlert = false
@@ -25,16 +26,16 @@ struct APIKeyManagementView: View {
                     }
                 }
                 .pickerStyle(.automatic)
-                .tint(.blue)
+                .tint(DreamersTheme.accentText(for: colorScheme))
                 
                 if aiService.isAPIKeyValid && aiService.selectedProvider != .ollama {
                     Spacer()
                     Circle()
-                        .fill(Color.green)
+                        .fill(DreamersTheme.success(for: colorScheme))
                         .frame(width: 8, height: 8)
                     Text("Connected")
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                 } else if aiService.selectedProvider == .ollama {
                     Spacer()
                     if isCheckingOllama {
@@ -42,18 +43,18 @@ struct APIKeyManagementView: View {
                             .controlSize(.small)
                     } else if !ollamaModels.isEmpty {
                         Circle()
-                            .fill(Color.green)
+                            .fill(DreamersTheme.success(for: colorScheme))
                             .frame(width: 8, height: 8)
                         Text("Connected")
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                     } else {
                         Circle()
-                            .fill(Color.red)
+                            .fill(DreamersTheme.danger(for: colorScheme))
                             .frame(width: 8, height: 8)
                         Text("Disconnected")
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                     }
                 }
             }
@@ -72,7 +73,7 @@ struct APIKeyManagementView: View {
                     if aiService.availableModels.isEmpty {
                         HStack {
                             Text("No models loaded")
-                                .foregroundColor(.secondary)
+                                .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                             Spacer()
                             Button(action: {
                                 Task {
@@ -122,7 +123,7 @@ struct APIKeyManagementView: View {
                     if isEditingURL {
                         HStack {
                             TextField("Base URL", text: $ollamaBaseURL)
-                                .textFieldStyle(.roundedBorder)
+                                .dreamersInputChrome()
                             
                             Button("Save") {
                                 aiService.updateOllamaBaseURL(ollamaBaseURL)
@@ -164,7 +165,7 @@ struct APIKeyManagementView: View {
                         HStack {
                             Text("Command")
                                 .font(.subheadline)
-                                .foregroundColor(.secondary)
+                                .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                             Spacer()
                             Menu("Load Template") {
                                 ForEach(LocalCLITemplate.allCases) { template in
@@ -181,14 +182,16 @@ struct APIKeyManagementView: View {
                             .multilineTextAlignment(.leading)
                             .frame(minHeight: 100)
                             .padding(4)
+                            .scrollContentBackground(.hidden)
                             .background(
                                 RoundedRectangle(cornerRadius: 8)
-                                    .fill(Color(NSColor.textBackgroundColor))
+                                    .fill(DreamersTheme.panelFill(for: colorScheme))
                             )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 8)
-                                    .stroke(Color.secondary.opacity(0.25), lineWidth: 1)
+                                    .stroke(DreamersTheme.panelStroke(for: colorScheme), lineWidth: 1)
                             )
+                            .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
                             .onChange(of: localCLICommandTemplate) { _, newValue in
                                 guard !isSyncingLocalCLIState else { return }
                                 if newValue != aiService.localCLICommandTemplate {
@@ -213,22 +216,22 @@ struct APIKeyManagementView: View {
 
                     Text("Environment variables available: VOICEINK_SYSTEM_PROMPT, VOICEINK_USER_PROMPT, VOICEINK_FULL_PROMPT. VoiceInk also writes VOICEINK_FULL_PROMPT to stdin for every command.")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
 
                     if !aiService.isAPIKeyValid {
                         Text("Load a template or enter a command to enable Local CLI enhancement.")
                             .font(.caption)
-                            .foregroundColor(.orange)
+                            .foregroundStyle(DreamersTheme.warning(for: colorScheme))
                     }
 
                 } else if aiService.selectedProvider == .custom {
                     TextField("API Endpoint URL", text: $aiService.customBaseURL, prompt: Text("e.g. https://api.openai.com/v1/chat/completions"))
-                        .textFieldStyle(.roundedBorder)
+                        .dreamersInputChrome()
 
                     Divider()
 
                     TextField("Model Name", text: $aiService.customModel, prompt: Text("e.g. gemini-3.1-pro-preview, gpt-5.5"))
-                        .textFieldStyle(.roundedBorder)
+                        .dreamersInputChrome()
 
                     Divider()
 
@@ -242,7 +245,7 @@ struct APIKeyManagementView: View {
                         }
                     } else {
                         SecureField("API Key", text: $apiKey)
-                            .textFieldStyle(.roundedBorder)
+                            .dreamersInputChrome()
 
                         Button("Verify and Save") {
                             isVerifying = true
@@ -264,14 +267,14 @@ struct APIKeyManagementView: View {
                             Text("API Key")
                             Spacer()
                             Text("••••••••")
-                                .foregroundColor(.secondary)
+                                .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                             Button("Remove", role: .destructive) {
                                 aiService.clearAPIKey()
                             }
                         }
                     } else {
                         SecureField("API Key", text: $apiKey)
-                            .textFieldStyle(.roundedBorder)
+                            .dreamersInputChrome()
 
                         HStack {
                             if let url = getAPIKeyURL() {
@@ -281,10 +284,10 @@ struct APIKeyManagementView: View {
                                         Text("Get API Key")
                                     }
                                     .font(.caption)
-                                    .foregroundColor(.blue)
+                                    .foregroundStyle(DreamersTheme.accentText(for: colorScheme))
                                     .padding(.vertical, 4)
                                     .padding(.horizontal, 8)
-                                    .background(Color.blue.opacity(0.1))
+                                    .background(DreamersTheme.accentText(for: colorScheme).opacity(0.12))
                                     .cornerRadius(6)
                                 }
                                 .buttonStyle(.plain)
@@ -316,6 +319,8 @@ struct APIKeyManagementView: View {
                 }
             }
         }
+        .listRowBackground(DreamersTheme.panelFill(for: colorScheme))
+        .listRowSeparatorTint(DreamersTheme.accentText(for: colorScheme).opacity(0.26))
         .alert("Error", isPresented: $showAlert) {
             Button("OK", role: .cancel) { }
         } message: {

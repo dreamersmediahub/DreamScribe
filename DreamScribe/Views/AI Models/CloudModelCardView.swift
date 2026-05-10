@@ -4,6 +4,7 @@ import LLMkit
 
 // MARK: - Cloud Model Card View
 struct CloudModelCardView: View {
+    @Environment(\.colorScheme) private var colorScheme
     let model: CloudModel
     let isCurrent: Bool
     var setDefaultAction: () -> Void
@@ -71,7 +72,7 @@ struct CloudModelCardView: View {
         HStack(alignment: .firstTextBaseline) {
             Text(model.displayName)
                 .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(Color(.labelColor))
+                .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
 
             if model.supportsStreaming && isConfigured {
                 streamingModeBadge
@@ -90,7 +91,7 @@ struct CloudModelCardView: View {
             .toggleStyle(.switch)
             .controlSize(.mini)
             .font(.system(size: 11, weight: .medium))
-            .foregroundColor(Color(.secondaryLabelColor))
+            .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
             .disabled(isStreamingOnly)
             .onChange(of: streamingEnabled) { _, newValue in
                 if !isStreamingOnly {
@@ -119,20 +120,20 @@ struct CloudModelCardView: View {
             // Provider
             Label(model.provider.rawValue, systemImage: "cloud")
                 .font(.system(size: 11))
-                .foregroundColor(Color(.secondaryLabelColor))
+                .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                 .lineLimit(1)
             
             // Language
             Label(model.language, systemImage: "globe")
                 .font(.system(size: 11))
-                .foregroundColor(Color(.secondaryLabelColor))
+                .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                 .lineLimit(1)
 
             // Speed
             HStack(spacing: 3) {
                 Text("Speed")
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(Color(.secondaryLabelColor))
+                    .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                 progressDotsWithNumber(value: model.speed * 10)
             }
             .lineLimit(1)
@@ -142,7 +143,7 @@ struct CloudModelCardView: View {
             HStack(spacing: 3) {
                 Text("Accuracy")
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(Color(.secondaryLabelColor))
+                    .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                 progressDotsWithNumber(value: model.accuracy * 10)
             }
             .lineLimit(1)
@@ -154,7 +155,7 @@ struct CloudModelCardView: View {
     private var descriptionSection: some View {
         Text(model.description)
             .font(.system(size: 11))
-            .foregroundColor(Color(.secondaryLabelColor))
+            .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
             .lineLimit(2)
             .fixedSize(horizontal: false, vertical: true)
             .padding(.top, 4)
@@ -165,7 +166,7 @@ struct CloudModelCardView: View {
             if isCurrent {
                 Text("Default Model")
                     .font(.system(size: 12))
-                    .foregroundColor(Color(.secondaryLabelColor))
+                    .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
             } else if isConfigured {
                 Button(action: setDefaultAction) {
                     Text("Set as Default")
@@ -190,8 +191,8 @@ struct CloudModelCardView: View {
                     .padding(.vertical, 6)
                     .background(
                         Capsule()
-                            .fill(Color(.controlAccentColor))
-                            .shadow(color: Color(.controlAccentColor).opacity(0.2), radius: 2, x: 0, y: 1)
+                            .fill(DreamersTheme.prismGradient)
+                            .shadow(color: DreamersTheme.accentText(for: colorScheme).opacity(0.24), radius: 2, x: 0, y: 1)
                     )
                 }
                 .buttonStyle(.plain)
@@ -219,11 +220,11 @@ struct CloudModelCardView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("API Key Configuration")
                 .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(Color(.labelColor))
+                .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
             
             HStack(spacing: 8) {
                 SecureField("Enter your \(model.provider.rawValue) API key", text: $apiKey)
-                    .textFieldStyle(.roundedBorder)
+                    .dreamersInputChrome()
                     .disabled(isVerifying)
                 
                 Button(action: verifyAPIKey) {
@@ -244,7 +245,7 @@ struct CloudModelCardView: View {
                     .padding(.vertical, 6)
                     .background(
                         Capsule()
-                            .fill(verificationStatus == .success ? Color(.systemGreen) : Color(.controlAccentColor))
+                            .fill(verificationStatus == .success ? AnyShapeStyle(DreamersTheme.success(for: colorScheme)) : AnyShapeStyle(DreamersTheme.prismGradient))
                     )
                 }
                 .buttonStyle(.plain)
@@ -255,11 +256,11 @@ struct CloudModelCardView: View {
                 if let error = verificationError {
                     Text(error)
                         .font(.caption)
-                        .foregroundColor(Color(.systemRed))
+                        .foregroundStyle(DreamersTheme.danger(for: colorScheme))
                 } else {
                     Text("Verification failed")
                         .font(.caption)
-                        .foregroundColor(Color(.systemRed))
+                        .foregroundStyle(DreamersTheme.danger(for: colorScheme))
                 }
             } else if verificationStatus == .success {
                 Text("API key verified successfully!")

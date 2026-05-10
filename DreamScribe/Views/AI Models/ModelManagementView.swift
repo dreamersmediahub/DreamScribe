@@ -12,6 +12,7 @@ enum ModelFilter: String, CaseIterable, Identifiable {
 }
 
 struct ModelManagementView: View {
+    @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject private var whisperModelManager: WhisperModelManager
     @EnvironmentObject private var fluidAudioModelManager: FluidAudioModelManager
     @EnvironmentObject private var transcriptionModelManager: TranscriptionModelManager
@@ -75,7 +76,7 @@ struct ModelManagementView: View {
                 Text("Model Settings")
                     .font(.headline)
                     .fontWeight(.semibold)
-                    .foregroundStyle(DreamersTheme.ColorToken.starWhite)
+                    .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
 
                 Spacer()
 
@@ -88,9 +89,9 @@ struct ModelManagementView: View {
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 16)
-            .background(DreamersTheme.ColorToken.softInk.opacity(0.22))
+            .background(DreamersTheme.panelFill(for: colorScheme))
             .overlay(
-                Divider().overlay(DreamersTheme.ColorToken.starWhite.opacity(0.18)), alignment: .bottom
+                Divider().overlay(DreamersTheme.panelStroke(for: colorScheme)), alignment: .bottom
             )
 
             // Content
@@ -110,7 +111,7 @@ struct ModelManagementView: View {
                 Text(transcriptionModelManager.currentTranscriptionModel?.displayName ?? "No model selected")
                     .font(.title2)
                     .fontWeight(.bold)
-                    .foregroundStyle(DreamersTheme.ColorToken.starWhite)
+                    .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
             }
             .padding()
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -141,7 +142,7 @@ struct ModelManagementView: View {
                         }) {
                             Text(filter.rawValue)
                                 .font(.system(size: 14, weight: selectedFilter == filter ? .semibold : .medium))
-                                .foregroundStyle(selectedFilter == filter ? DreamersTheme.ColorToken.starWhite : DreamersTheme.ColorToken.starWhite.opacity(0.72))
+                                .foregroundStyle(selectedFilter == filter ? DreamersTheme.primaryText(for: colorScheme) : DreamersTheme.secondaryText(for: colorScheme))
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 8)
                         }
@@ -247,7 +248,7 @@ struct ModelManagementView: View {
                             Text("Only OpenAI-compatible transcription APIs are supported.")
                                 .font(.system(size: 12))
                         }
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                         .padding(.bottom, 4)
 
                         AddCustomModelCardView(
@@ -270,11 +271,11 @@ struct ModelManagementView: View {
         HStack(spacing: 10) {
             Image(systemName: "exclamationmark.triangle.fill")
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(.orange)
+                .foregroundStyle(DreamersTheme.warning(for: colorScheme))
 
             Text("Local models don't work reliably on Intel Macs")
                 .font(.system(size: 13, weight: .medium))
-                .foregroundStyle(DreamersTheme.ColorToken.starWhite.opacity(0.88))
+                .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
 
             Spacer()
 
@@ -289,10 +290,10 @@ struct ModelManagementView: View {
                     Image(systemName: "arrow.right")
                         .font(.system(size: 10, weight: .bold))
                 }
-                .foregroundColor(.orange)
+                .foregroundStyle(DreamersTheme.warning(for: colorScheme))
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
-                .background(Color.orange.opacity(0.12))
+                .background(DreamersTheme.warning(for: colorScheme).opacity(0.14))
                 .cornerRadius(6)
             }
             .buttonStyle(.plain)
@@ -301,11 +302,11 @@ struct ModelManagementView: View {
         .padding(.vertical, 10)
         .background(
             RoundedRectangle(cornerRadius: DreamersTheme.Radius.panel, style: .continuous)
-                .fill(Color.orange.opacity(0.10))
+                .fill(DreamersTheme.warning(for: colorScheme).opacity(0.10))
         )
         .overlay(
             RoundedRectangle(cornerRadius: DreamersTheme.Radius.panel, style: .continuous)
-                .stroke(Color.orange.opacity(0.30), lineWidth: 0.8)
+                .stroke(DreamersTheme.warning(for: colorScheme).opacity(0.30), lineWidth: 0.8)
         )
     }
 

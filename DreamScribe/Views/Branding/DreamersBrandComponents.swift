@@ -1,11 +1,12 @@
 import SwiftUI
 
 struct DreamersAtmosphere: View {
+    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var drift = false
 
     var body: some View {
-        DreamersTheme.atmosphereGradient()
+        DreamersTheme.atmosphereGradient(for: colorScheme)
             .overlay(alignment: .topTrailing) {
                 if !reduceMotion {
                     DreamersTheme.prismGradient
@@ -34,6 +35,7 @@ struct DreamersAtmosphere: View {
 }
 
 struct ChromePanel<Content: View>: View {
+    @Environment(\.colorScheme) private var colorScheme
     let isSelected: Bool
     let cornerRadius: CGFloat
     let content: Content
@@ -48,13 +50,18 @@ struct ChromePanel<Content: View>: View {
         content
             .background(
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .fill(isSelected ? DreamersTheme.selectedPanelFill : DreamersTheme.panelFill)
+                    .fill(isSelected ? DreamersTheme.selectedPanelFill(for: colorScheme) : DreamersTheme.panelFill(for: colorScheme))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .stroke(isSelected ? DreamersTheme.selectedPanelStroke : DreamersTheme.panelStroke, lineWidth: isSelected ? 1.2 : 0.8)
+                    .stroke(isSelected ? DreamersTheme.selectedPanelStroke(for: colorScheme) : DreamersTheme.panelStroke(for: colorScheme), lineWidth: isSelected ? 1.2 : 0.8)
             )
-            .shadow(color: DreamersTheme.ColorToken.softInk.opacity(isSelected ? 0.22 : 0.14), radius: isSelected ? 18 : 12, x: 0, y: isSelected ? 10 : 6)
+            .shadow(
+                color: DreamersTheme.ColorToken.softInk.opacity(colorScheme == .dark ? 0.10 : (isSelected ? 0.18 : 0.10)),
+                radius: isSelected ? 14 : 8,
+                x: 0,
+                y: isSelected ? 7 : 4
+            )
     }
 }
 
@@ -103,6 +110,8 @@ struct DREAMScribeLockup: View {
 }
 
 struct DreamersFooterMark: View {
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
         HStack(spacing: 8) {
             Image("DreamersSubmark")
@@ -115,12 +124,13 @@ struct DreamersFooterMark: View {
                 .font(.system(size: 10, weight: .medium, design: .monospaced))
                 .tracking(2.0)
         }
-        .foregroundStyle(DreamersTheme.ColorToken.starWhite.opacity(0.72))
+        .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
         .accessibilityLabel("Dreamers Media")
     }
 }
 
 struct DreamersSectionHeader: View {
+    @Environment(\.colorScheme) private var colorScheme
     let label: String
     let title: String
     var subtitle: String?
@@ -130,16 +140,16 @@ struct DreamersSectionHeader: View {
             Text(label.uppercased())
                 .font(.system(size: 11, weight: .medium, design: .monospaced))
                 .tracking(1.8)
-                .foregroundStyle(DreamersTheme.ColorToken.auroraCyan.opacity(0.84))
+                .foregroundStyle(DreamersTheme.labelText(for: colorScheme))
 
             Text(title)
                 .font(.system(size: 22, weight: .semibold, design: .serif))
-                .foregroundStyle(DreamersTheme.ColorToken.starWhite)
+                .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
 
             if let subtitle {
                 Text(subtitle)
                     .font(.system(size: 13, weight: .regular))
-                    .foregroundStyle(DreamersTheme.ColorToken.starWhite.opacity(0.72))
+                    .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -147,19 +157,20 @@ struct DreamersSectionHeader: View {
 }
 
 struct ChromeIconButtonStyle: ButtonStyle {
+    @Environment(\.colorScheme) private var colorScheme
     var isSelected = false
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .foregroundStyle(isSelected ? DreamersTheme.ColorToken.starWhite : DreamersTheme.ColorToken.starWhite.opacity(0.82))
+            .foregroundStyle(isSelected ? DreamersTheme.primaryText(for: colorScheme) : DreamersTheme.secondaryText(for: colorScheme))
             .padding(8)
             .background(
                 RoundedRectangle(cornerRadius: DreamersTheme.Radius.control, style: .continuous)
-                    .fill(isSelected ? DreamersTheme.selectedPanelFill : DreamersTheme.panelFill)
+                    .fill(isSelected ? DreamersTheme.selectedPanelFill(for: colorScheme) : DreamersTheme.panelFill(for: colorScheme))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: DreamersTheme.Radius.control, style: .continuous)
-                    .stroke(isSelected ? DreamersTheme.selectedPanelStroke : DreamersTheme.panelStroke, lineWidth: 0.8)
+                    .stroke(isSelected ? DreamersTheme.selectedPanelStroke(for: colorScheme) : DreamersTheme.panelStroke(for: colorScheme), lineWidth: 0.8)
             )
             .scaleEffect(configuration.isPressed ? 0.96 : 1)
             .animation(DreamersTheme.Motion.fast, value: configuration.isPressed)
@@ -167,6 +178,7 @@ struct ChromeIconButtonStyle: ButtonStyle {
 }
 
 struct PrismButtonStyle: ButtonStyle {
+    @Environment(\.colorScheme) private var colorScheme
     var role: ButtonRole?
 
     func makeBody(configuration: Configuration) -> some View {
@@ -181,7 +193,7 @@ struct PrismButtonStyle: ButtonStyle {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: DreamersTheme.Radius.control, style: .continuous)
-                    .stroke(DreamersTheme.ColorToken.starWhite.opacity(0.42), lineWidth: 0.8)
+                    .stroke(colorScheme == .dark ? DreamersTheme.ColorToken.starWhite.opacity(0.42) : DreamersTheme.ColorToken.deepDreamBlue.opacity(0.20), lineWidth: 0.8)
             )
             .opacity(configuration.isPressed ? 0.84 : 1)
             .scaleEffect(configuration.isPressed ? 0.98 : 1)
@@ -197,5 +209,47 @@ extension View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .background(DreamersAtmosphere().ignoresSafeArea())
             .tint(DreamersTheme.ColorToken.auroraCyan)
+    }
+
+    func dreamersFormChrome() -> some View {
+        modifier(DreamersFormChromeModifier())
+    }
+
+    func dreamersInputChrome() -> some View {
+        modifier(DreamersInputChromeModifier())
+    }
+}
+
+private struct DreamersFormChromeModifier: ViewModifier {
+    @Environment(\.colorScheme) private var colorScheme
+
+    func body(content: Content) -> some View {
+        content
+            .scrollContentBackground(.hidden)
+            .listRowBackground(DreamersTheme.panelFill(for: colorScheme))
+            .listRowSeparatorTint(DreamersTheme.accentText(for: colorScheme).opacity(0.26))
+            .background(DreamersAtmosphere().ignoresSafeArea())
+            .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
+            .tint(DreamersTheme.accentText(for: colorScheme))
+    }
+}
+
+private struct DreamersInputChromeModifier: ViewModifier {
+    @Environment(\.colorScheme) private var colorScheme
+
+    func body(content: Content) -> some View {
+        content
+            .textFieldStyle(.plain)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 7)
+            .background(
+                RoundedRectangle(cornerRadius: DreamersTheme.Radius.control, style: .continuous)
+                    .fill(DreamersTheme.selectedPanelFill(for: colorScheme))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: DreamersTheme.Radius.control, style: .continuous)
+                    .stroke(DreamersTheme.panelStroke(for: colorScheme), lineWidth: 0.8)
+            )
+            .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
     }
 }

@@ -16,6 +16,7 @@ enum SortColumn {
 struct WordReplacementView: View {
     @Query private var wordReplacements: [WordReplacement]
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.colorScheme) private var colorScheme
     @State private var showAlert = false
     @State private var editingReplacement: WordReplacement? = nil
     @State private var alertMessage = ""
@@ -60,36 +61,37 @@ struct WordReplacementView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            GroupBox {
+            ChromePanel {
                 Label {
                     Text("Define word replacements to automatically replace specific words or phrases")
                         .font(.system(size: 12))
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                         .fixedSize(horizontal: false, vertical: true)
                 } icon: {
                     Button(action: { showInfoPopover.toggle() }) {
                         Image(systemName: "info.circle.fill")
-                            .foregroundColor(.blue)
+                            .foregroundStyle(DreamersTheme.accentText(for: colorScheme))
                     }
                     .buttonStyle(.plain)
                     .popover(isPresented: $showInfoPopover) {
                         WordReplacementInfoPopover()
                     }
                 }
+                .padding(12)
             }
 
             HStack(spacing: 8) {
                 TextField("Original text (use commas for multiple)", text: $originalWord)
-                    .textFieldStyle(.roundedBorder)
+                    .dreamersInputChrome()
                     .font(.system(size: 13))
 
                 Image(systemName: "arrow.right")
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                     .font(.system(size: 10))
                     .frame(width: 10)
 
                 TextField("Replacement text", text: $replacementWord)
-                    .textFieldStyle(.roundedBorder)
+                    .dreamersInputChrome()
                     .font(.system(size: 13))
                     .onSubmit { addReplacement() }
 
@@ -97,10 +99,10 @@ struct WordReplacementView: View {
                     Button(action: addReplacement) {
                         Image(systemName: "plus.circle.fill")
                             .symbolRenderingMode(.hierarchical)
-                            .foregroundStyle(.blue)
+                            .foregroundStyle(DreamersTheme.accentText(for: colorScheme))
                             .font(.system(size: 16, weight: .semibold))
                     }
-                    .buttonStyle(.borderless)
+                    .buttonStyle(.plain)
                     .disabled(originalWord.isEmpty || replacementWord.isEmpty)
                     .help("Add word replacement")
                 }
@@ -114,12 +116,12 @@ struct WordReplacementView: View {
                             HStack(spacing: 4) {
                                 Text("Original")
                                     .font(.system(size: 12, weight: .medium))
-                                    .foregroundColor(.secondary)
+                                    .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
 
                                 if sortMode == .originalAsc || sortMode == .originalDesc {
                                     Image(systemName: sortMode == .originalAsc ? "chevron.up" : "chevron.down")
                                         .font(.caption)
-                                        .foregroundColor(.accentColor)
+                                        .foregroundStyle(DreamersTheme.accentText(for: colorScheme))
                                 }
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -128,7 +130,7 @@ struct WordReplacementView: View {
                         .help("Sort by original")
 
                         Image(systemName: "arrow.right")
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                             .font(.system(size: 10))
                             .frame(width: 10)
 
@@ -136,12 +138,12 @@ struct WordReplacementView: View {
                             HStack(spacing: 4) {
                                 Text("Replacement")
                                     .font(.system(size: 12, weight: .medium))
-                                    .foregroundColor(.secondary)
+                                    .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
 
                                 if sortMode == .replacementAsc || sortMode == .replacementDesc {
                                     Image(systemName: sortMode == .replacementAsc ? "chevron.up" : "chevron.down")
                                         .font(.caption)
-                                        .foregroundColor(.accentColor)
+                                        .foregroundStyle(DreamersTheme.accentText(for: colorScheme))
                                 }
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -297,6 +299,7 @@ struct WordReplacementInfoPopover: View {
 }
 
 struct ReplacementRow: View {
+    @Environment(\.colorScheme) private var colorScheme
     let original: String
     let replacement: String
     let onDelete: () -> Void
@@ -309,10 +312,11 @@ struct ReplacementRow: View {
             Text(original)
                 .font(.system(size: 13))
                 .lineLimit(2)
+                .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             Image(systemName: "arrow.right")
-                .foregroundColor(.secondary)
+                .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                 .font(.system(size: 10))
                 .frame(width: 10)
 
@@ -320,6 +324,7 @@ struct ReplacementRow: View {
                 Text(replacement)
                     .font(.system(size: 13))
                     .lineLimit(2)
+                    .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.trailing, 50)
 
@@ -327,7 +332,7 @@ struct ReplacementRow: View {
                     Button(action: onEdit) {
                         Image(systemName: "pencil.circle.fill")
                             .symbolRenderingMode(.hierarchical)
-                            .foregroundColor(isEditHovered ? .accentColor : .secondary)
+                            .foregroundStyle(isEditHovered ? DreamersTheme.accentText(for: colorScheme) : DreamersTheme.secondaryText(for: colorScheme))
                             .contentTransition(.symbolEffect(.replace))
                     }
                     .buttonStyle(.borderless)
@@ -341,7 +346,7 @@ struct ReplacementRow: View {
                     Button(action: onDelete) {
                         Image(systemName: "xmark.circle.fill")
                             .symbolRenderingMode(.hierarchical)
-                            .foregroundStyle(isDeleteHovered ? .red : .secondary)
+                            .foregroundStyle(isDeleteHovered ? DreamersTheme.danger(for: colorScheme) : DreamersTheme.secondaryText(for: colorScheme))
                             .contentTransition(.symbolEffect(.replace))
                     }
                     .buttonStyle(.borderless)
@@ -358,4 +363,4 @@ struct ReplacementRow: View {
         .padding(.vertical, 8)
         .padding(.horizontal, 4)
     }
-} 
+}

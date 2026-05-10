@@ -7,6 +7,7 @@ enum LanguageDisplayMode {
 }
 
 struct LanguageSelectionView: View {
+    @Environment(\.colorScheme) private var colorScheme
     @ObservedObject var transcriptionModelManager: TranscriptionModelManager
     @AppStorage("SelectedLanguage") private var selectedLanguage: String = "en"
     // Add display mode parameter with full as the default
@@ -116,15 +117,15 @@ struct LanguageSelectionView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Language: Autodetected")
                             .font(.subheadline)
-                            .foregroundColor(.primary)
+                            .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
 
                         Text("Current model: \(currentModel.displayName)")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
 
                         Text("The transcription language is automatically detected by the model.")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                     }
                     .disabled(true)
                 } else if isMultilingualModel() {
@@ -151,30 +152,30 @@ struct LanguageSelectionView: View {
 
                         Text("Current model: \(currentModel.displayName)")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
 
                         Text(
                             "This model supports multiple languages. Select a specific language or auto-detect(if available)"
                         )
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                     }
                 } else {
                     // For English-only models, force set language to English
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Language: English")
                             .font(.subheadline)
-                            .foregroundColor(.primary)
+                            .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
 
                         Text("Current model: \(currentModel.displayName)")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
 
                         Text(
                             "This is an English-optimized model and only supports English transcription."
                         )
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                     }
                     .onAppear {
                         // Ensure English is set when viewing English-only model
@@ -184,13 +185,19 @@ struct LanguageSelectionView: View {
             } else {
                 Text("No model selected")
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
             }
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(NSColor.controlBackgroundColor))
-        .cornerRadius(10)
+        .background(
+            RoundedRectangle(cornerRadius: DreamersTheme.Radius.panel, style: .continuous)
+                .fill(DreamersTheme.panelFill(for: colorScheme))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: DreamersTheme.Radius.panel, style: .continuous)
+                .stroke(DreamersTheme.panelStroke(for: colorScheme), lineWidth: 1)
+        )
     }
 
     // New compact view for menu bar
@@ -201,7 +208,7 @@ struct LanguageSelectionView: View {
                     // Do nothing, just showing info
                 } label: {
                     Text("Language: Autodetected")
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                 }
                 .disabled(true)
             } else if isMultilingualModel() {
@@ -243,7 +250,7 @@ struct LanguageSelectionView: View {
                     // Do nothing, just showing info
                 } label: {
                     Text("Language: English (only)")
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                 }
                 .disabled(true)
                 .onAppear {

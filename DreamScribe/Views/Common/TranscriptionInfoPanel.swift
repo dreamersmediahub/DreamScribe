@@ -3,6 +3,7 @@ import SwiftUI
 /// Reusable component that displays transcription Details and AI Request sections.
 /// Used in both the inline history sliding panel and the separate history window's metadata view.
 struct TranscriptionInfoPanel: View {
+    @Environment(\.colorScheme) private var colorScheme
     let transcription: Transcription
 
     var body: some View {
@@ -11,7 +12,7 @@ struct TranscriptionInfoPanel: View {
             aiRequestSection
         }
         .formStyle(.grouped)
-        .scrollContentBackground(.hidden)
+        .dreamersFormChrome()
     }
 
     // MARK: - Details Section
@@ -95,12 +96,12 @@ struct TranscriptionInfoPanel: View {
                     VStack(alignment: .leading, spacing: 6) {
                         Text("System Prompt")
                             .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                         Text(systemMsg)
                             .font(.system(size: 11, weight: .regular, design: .monospaced))
                             .lineSpacing(2)
                             .textSelection(.enabled)
-                            .foregroundColor(.primary)
+                            .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
                     }
                 }
 
@@ -108,12 +109,12 @@ struct TranscriptionInfoPanel: View {
                     VStack(alignment: .leading, spacing: 6) {
                         Text("User Message")
                             .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                         Text(userMsg)
                             .font(.system(size: 11, weight: .regular, design: .monospaced))
                             .lineSpacing(2)
                             .textSelection(.enabled)
-                            .foregroundColor(.primary)
+                            .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
                     }
                 }
             } header: {
@@ -143,18 +144,18 @@ struct TranscriptionInfoPanel: View {
         HStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.system(size: 11, weight: .medium))
-                .foregroundColor(.secondary)
+                .foregroundStyle(DreamersTheme.accentText(for: colorScheme))
                 .frame(width: 20, height: 20)
 
             Text(label)
                 .font(.system(size: 12, weight: .medium))
-                .foregroundColor(.secondary)
+                .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
 
             Spacer(minLength: 0)
 
             Text(value)
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(.primary)
+                .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
                 .lineLimit(1)
         }
     }

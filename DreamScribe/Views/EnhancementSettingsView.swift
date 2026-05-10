@@ -2,6 +2,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 struct EnhancementSettingsView: View {
+    @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject private var enhancementService: AIEnhancementService
     @State private var isEditingPrompt = false
     @State private var isShowingSettings = false
@@ -111,8 +112,8 @@ struct EnhancementSettingsView: View {
             .opacity(enhancementService.isEnhancementEnabled ? 1.0 : 0.8)
         }
         .formStyle(.grouped)
-        .scrollContentBackground(.hidden)
-        .background(DreamersAtmosphere().ignoresSafeArea())
+        .dreamersFormChrome()
+        .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
         .slidingPanel(isPresented: .init(
             get: { isPanelOpen },
             set: { newValue in
@@ -147,6 +148,7 @@ struct EnhancementSettingsView: View {
 
 // MARK: - Reorderable Grid
 private struct ReorderablePromptGrid: View {
+    @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject private var enhancementService: AIEnhancementService
 
     let selectedPromptId: UUID?
@@ -161,7 +163,7 @@ private struct ReorderablePromptGrid: View {
             if enhancementService.customPrompts.isEmpty {
                 ChromePanel {
                     Text("No prompts available")
-                        .foregroundStyle(DreamersTheme.ColorToken.starWhite.opacity(0.70))
+                        .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                         .font(.caption)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(16)
@@ -189,7 +191,7 @@ private struct ReorderablePromptGrid: View {
                             RoundedRectangle(cornerRadius: 14)
                                 .stroke(
                                     draggingItem != nil && draggingItem?.id != prompt.id
-                                    ? Color.accentColor.opacity(0.25)
+                                    ? DreamersTheme.accentText(for: colorScheme).opacity(0.25)
                                     : Color.clear,
                                     lineWidth: 1
                                 )
@@ -215,11 +217,11 @@ private struct ReorderablePromptGrid: View {
                 HStack {
                     Image(systemName: "info.circle")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
 
                     Text("Double-click to edit • Right-click for more options")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                 }
                 .padding(.top, 8)
                 .padding(.horizontal, 16)

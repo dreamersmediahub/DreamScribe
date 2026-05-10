@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct AddCustomModelCardView: View {
+    @Environment(\.colorScheme) private var colorScheme
     @ObservedObject var customModelManager: CustomCloudModelManager
     var onModelAdded: () -> Void
     var editingModel: CustomCloudModel? = nil
@@ -50,11 +51,11 @@ struct AddCustomModelCardView: View {
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
-                    .background(Color.accentColor)
+                    .background(DreamersTheme.prismGradient)
                     .cornerRadius(12)
                 }
                 .buttonStyle(.plain)
-                .shadow(color: Color.accentColor.opacity(0.3), radius: 8, y: 4)
+                .shadow(color: DreamersTheme.accentText(for: colorScheme).opacity(0.3), radius: 8, y: 4)
             }
             
             // Expandable Form Section
@@ -64,7 +65,7 @@ struct AddCustomModelCardView: View {
                     HStack {
                         Text(editingModel != nil ? "Edit Custom Model" : "Add Custom Model")
                             .font(.headline)
-                            .foregroundColor(.primary)
+                            .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
                         
                         Spacer()
                         
@@ -76,7 +77,7 @@ struct AddCustomModelCardView: View {
                         }) {
                             Image(systemName: "xmark")
                                 .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(.secondary)
+                                .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                         }
                         .buttonStyle(.plain)
                     }
@@ -84,15 +85,15 @@ struct AddCustomModelCardView: View {
                     // Disclaimer
                     HStack(spacing: 8) {
                         Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundColor(.orange)
+                            .foregroundStyle(DreamersTheme.warning(for: colorScheme))
                             .font(.caption)
                         Text("Only OpenAI-compatible transcription APIs are supported")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
-                    .background(Color.orange.opacity(0.1))
+                    .background(DreamersTheme.warning(for: colorScheme).opacity(0.12))
                     .cornerRadius(8)
                     
                     // Form fields
@@ -115,10 +116,10 @@ struct AddCustomModelCardView: View {
                         }) {
                             Text("Cancel")
                                 .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(.secondary)
+                                .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 10)
-                                .background(Color.secondary.opacity(0.1))
+                                .background(DreamersTheme.selectedPanelFill(for: colorScheme))
                                 .cornerRadius(8)
                         }
                         .buttonStyle(.plain)
@@ -143,8 +144,8 @@ struct AddCustomModelCardView: View {
                             .padding(.vertical, 10)
                             .background(
                                 RoundedRectangle(cornerRadius: 8)
-                                    .fill(isFormValid ? Color(.controlAccentColor) : Color.secondary)
-                                    .shadow(color: (isFormValid ? Color(.controlAccentColor) : Color.secondary).opacity(0.2), radius: 2, x: 0, y: 1)
+                                    .fill(isFormValid ? AnyShapeStyle(DreamersTheme.prismGradient) : AnyShapeStyle(DreamersTheme.tertiaryText(for: colorScheme).opacity(0.35)))
+                                    .shadow(color: DreamersTheme.accentText(for: colorScheme).opacity(isFormValid ? 0.24 : 0.0), radius: 2, x: 0, y: 1)
                             )
                         }
                         .buttonStyle(.plain)
@@ -154,10 +155,10 @@ struct AddCustomModelCardView: View {
                 .padding(16)
                 .background(
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(.windowBackgroundColor))
+                        .fill(DreamersTheme.panelFill(for: colorScheme))
                         .overlay(
                             RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color(.separatorColor), lineWidth: 1)
+                                .stroke(DreamersTheme.panelStroke(for: colorScheme), lineWidth: 1)
                         )
                 )
             }
@@ -276,6 +277,7 @@ struct AddCustomModelCardView: View {
 }
 
 struct FormField: View {
+    @Environment(\.colorScheme) private var colorScheme
     let title: String
     @Binding var text: String
     let placeholder: String
@@ -286,15 +288,15 @@ struct FormField: View {
             Text(title)
                 .font(.subheadline)
                 .fontWeight(.medium)
-                .foregroundColor(.primary)
+                .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
             
             if isSecure {
                 SecureField(placeholder, text: $text)
-                    .textFieldStyle(.roundedBorder)
+                    .dreamersInputChrome()
             } else {
                 TextField(placeholder, text: $text)
-                    .textFieldStyle(.roundedBorder)
+                    .dreamersInputChrome()
             }
         }
     }
-} 
+}

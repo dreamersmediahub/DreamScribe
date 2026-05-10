@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct MetricCard: View {
+    @Environment(\.colorScheme) private var colorScheme
     let icon: String
     let title: String
     let value: String
@@ -27,21 +28,21 @@ struct MetricCard: View {
                     Text(title)
                         .font(.system(size: 12, weight: .semibold, design: .monospaced))
                         .tracking(0.6)
-                        .foregroundStyle(DreamersTheme.ColorToken.starWhite.opacity(0.76))
+                        .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                         .lineLimit(1)
                         .minimumScaleFactor(0.72)
                 }
 
                 Text(value)
                     .font(.system(size: 28, weight: .black, design: .rounded))
-                    .foregroundStyle(DreamersTheme.ColorToken.starWhite)
+                    .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
 
                 if let detail, !detail.isEmpty {
                     Text(detail)
                         .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(DreamersTheme.ColorToken.starWhite.opacity(0.62))
+                        .foregroundStyle(DreamersTheme.tertiaryText(for: colorScheme))
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
                         .fixedSize(horizontal: false, vertical: true)

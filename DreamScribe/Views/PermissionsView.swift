@@ -83,6 +83,7 @@ class PermissionManager: ObservableObject {
 }
 
 struct PermissionCard: View {
+    @Environment(\.colorScheme) private var colorScheme
     let icon: String
     let title: String
     let description: String
@@ -100,12 +101,12 @@ struct PermissionCard: View {
                 // Icon with background
                 ZStack {
                     Circle()
-                        .fill(isGranted ? Color.green.opacity(0.15) : Color.orange.opacity(0.15))
+                        .fill(statusColor.opacity(0.15))
                         .frame(width: 44, height: 44)
 
                     Image(systemName: isGranted ? "\(icon).fill" : icon)
                         .font(.system(size: 20, weight: .semibold))
-                        .foregroundColor(isGranted ? .green : .orange)
+                        .foregroundStyle(statusColor)
                         .symbolRenderingMode(.hierarchical)
                 }
 
@@ -113,7 +114,7 @@ struct PermissionCard: View {
                     HStack {
                         Text(title)
                             .font(.headline)
-                            .foregroundStyle(DreamersTheme.ColorToken.starWhite)
+                            .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
                         if let message = infoTipMessage {
                             if let link = infoTipLink, !link.isEmpty {
                                 InfoTip(message, learnMoreURL: link)
@@ -124,7 +125,7 @@ struct PermissionCard: View {
                     }
                     Text(description)
                         .font(.subheadline)
-                        .foregroundStyle(DreamersTheme.ColorToken.starWhite.opacity(0.70))
+                        .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                 }
                 
                 Spacer()
@@ -152,12 +153,12 @@ struct PermissionCard: View {
                     if isGranted {
                         Image(systemName: "checkmark.seal.fill")
                             .font(.system(size: 20))
-                            .foregroundColor(.green)
+                            .foregroundStyle(statusColor)
                             .symbolRenderingMode(.hierarchical)
                     } else {
                         Image(systemName: "xmark.seal.fill")
                             .font(.system(size: 20))
-                            .foregroundColor(.orange)
+                            .foregroundStyle(statusColor)
                             .symbolRenderingMode(.hierarchical)
                     }
                 }
@@ -182,6 +183,10 @@ struct PermissionCard: View {
                 Color.clear
             }
         )
+    }
+
+    private var statusColor: Color {
+        isGranted ? DreamersTheme.success(for: colorScheme) : DreamersTheme.warning(for: colorScheme)
     }
 }
 

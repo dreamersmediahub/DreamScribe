@@ -2,6 +2,7 @@ import SwiftUI
 import AppKit
 // MARK: - Local Model Card View
 struct WhisperModelCardView: View {
+    @Environment(\.colorScheme) private var colorScheme
     let model: WhisperModel
     let isDownloaded: Bool
     let isCurrent: Bool
@@ -40,7 +41,7 @@ struct WhisperModelCardView: View {
         HStack(alignment: .firstTextBaseline) {
             Text(model.displayName)
                 .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(Color(.labelColor))
+                .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
             
             Spacer()
         }
@@ -51,20 +52,20 @@ struct WhisperModelCardView: View {
             // Language
             Label(model.language, systemImage: "globe")
                 .font(.system(size: 11))
-                .foregroundColor(Color(.secondaryLabelColor))
+                .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                 .lineLimit(1)
             
             // Size
             Label(model.size, systemImage: "internaldrive")
                 .font(.system(size: 11))
-                .foregroundColor(Color(.secondaryLabelColor))
+                .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                 .lineLimit(1)
             
             // Speed
             HStack(spacing: 3) {
                 Text("Speed")
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(Color(.secondaryLabelColor))
+                    .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                 progressDotsWithNumber(value: model.speed * 10)
             }
             .lineLimit(1)
@@ -74,7 +75,7 @@ struct WhisperModelCardView: View {
             HStack(spacing: 3) {
                 Text("Accuracy")
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(Color(.secondaryLabelColor))
+                    .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                 progressDotsWithNumber(value: model.accuracy * 10)
             }
             .lineLimit(1)
@@ -86,7 +87,7 @@ struct WhisperModelCardView: View {
     private var descriptionSection: some View {
         Text(model.description)
             .font(.system(size: 11))
-            .foregroundColor(Color(.secondaryLabelColor))
+            .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
             .lineLimit(2)
             .fixedSize(horizontal: false, vertical: true)
             .padding(.top, 4)
@@ -111,7 +112,7 @@ struct WhisperModelCardView: View {
             if isCurrent {
                 Text("Default Model")
                     .font(.system(size: 12))
-                    .foregroundColor(Color(.secondaryLabelColor))
+                    .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
             } else if isDownloaded {
                 Button(action: setDefaultAction) {
                     Text("Set as Default")
@@ -132,8 +133,8 @@ struct WhisperModelCardView: View {
                     .padding(.vertical, 6)
                     .background(
                         Capsule()
-                            .fill(Color(.controlAccentColor))
-                            .shadow(color: Color(.controlAccentColor).opacity(0.2), radius: 2, x: 0, y: 1)
+                            .fill(DreamersTheme.prismGradient)
+                            .shadow(color: DreamersTheme.accentText(for: colorScheme).opacity(0.24), radius: 2, x: 0, y: 1)
                     )
                 }
                 .buttonStyle(.plain)
@@ -167,6 +168,7 @@ struct WhisperModelCardView: View {
 
 // MARK: - Imported Local Model (minimal UI)
 struct ImportedWhisperModelCardView: View {
+    @Environment(\.colorScheme) private var colorScheme
     let model: ImportedWhisperModel
     let isDownloaded: Bool
     let isCurrent: Bool
@@ -181,13 +183,13 @@ struct ImportedWhisperModelCardView: View {
                 HStack(alignment: .firstTextBaseline) {
                     Text(model.displayName)
                         .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(Color(.labelColor))
+                        .foregroundStyle(DreamersTheme.primaryText(for: colorScheme))
                     Spacer()
                 }
 
                 Text("Imported local model")
                     .font(.system(size: 11))
-                    .foregroundColor(Color(.secondaryLabelColor))
+                    .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                     .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.top, 4)
@@ -198,7 +200,7 @@ struct ImportedWhisperModelCardView: View {
                 if isCurrent {
                     Text("Default Model")
                         .font(.system(size: 12))
-                        .foregroundColor(Color(.secondaryLabelColor))
+                        .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
                 } else if isDownloaded {
                     Button(action: setDefaultAction) {
                         Text("Set as Default")
@@ -239,11 +241,20 @@ struct ImportedWhisperModelCardView: View {
 // MARK: - Helper Views and Functions
 
 func progressDotsWithNumber(value: Double) -> some View {
-    HStack(spacing: 4) {
-        progressDots(value: value)
-        Text(String(format: "%.1f", value))
-            .font(.system(size: 10, weight: .medium, design: .monospaced))
-            .foregroundColor(Color(.secondaryLabelColor))
+    ProgressDotsWithNumber(value: value)
+}
+
+private struct ProgressDotsWithNumber: View {
+    @Environment(\.colorScheme) private var colorScheme
+    let value: Double
+
+    var body: some View {
+        HStack(spacing: 4) {
+            progressDots(value: value)
+            Text(String(format: "%.1f", value))
+                .font(.system(size: 10, weight: .medium, design: .monospaced))
+                .foregroundStyle(DreamersTheme.secondaryText(for: colorScheme))
+        }
     }
 }
 
